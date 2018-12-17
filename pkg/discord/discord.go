@@ -2,6 +2,7 @@ package discord
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -26,7 +27,11 @@ func InitializeBot(botToken string, thesaurusAPI thesaurus.API) {
 		}
 
 		if strings.HasPrefix(m.Content, "!thesaurize") {
-			newSentence, _ := sentence.ThesaurizeSentence(m.Content[11:len(m.Content)], thesaurusAPI)
+			newSentence, err := sentence.ThesaurizeSentence(m.Content[11:len(m.Content)], thesaurusAPI)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			s.ChannelMessageSend(m.ChannelID, newSentence)
 		}
 	})

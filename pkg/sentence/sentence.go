@@ -25,7 +25,7 @@ func ThesaurizeSentence(sentence string, api thesaurus.API) (string, error) {
 		if _, ok := ignoreWords[word]; ok {
 			output = append(output, originalWord)
 		} else {
-			resp, err := api.Call(word)
+			resp, err := api.Lookup(word)
 			if err != nil {
 				return "", err
 			}
