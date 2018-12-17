@@ -19,20 +19,24 @@ func ThesaurizeSentence(sentence string, api thesaurus.API) (string, error) {
 	output := make([]string, 0, len(stringArray))
 
 	for i := range stringArray {
-		word := regx.ReplaceAllString(stringArray[i], "")
+		originalWord := regx.ReplaceAllString(stringArray[i], "")
+		word := strings.ToLower(originalWord)
 
 		if _, ok := ignoreWords[word]; ok {
-			output = append(output, word)
+			output = append(output, originalWord)
 		} else {
-			resp, _ := api.Call(word)
-			words := compileWordBucket(resp)
+			resp, err := api.Call(word)
+			if err != nil {
+				return "", err
+			}
 
-			if len(words) == 0 {
+			bucket := compileWordBucket(resp)
+			if len(bucket) == 0 {
 				// If thesaurus could not find synonym then return the input word.
-				output = append(output, word)
+				output = append(output, originalWord)
 			} else {
-				idx := randomizer.Intn(len(words))
-				output = append(output, words[idx])
+				idx := randomizer.Intn(len(bucket))
+				output = append(output, bucket[idx])
 			}
 		}
 	}
