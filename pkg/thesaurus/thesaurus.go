@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -38,13 +39,13 @@ type (
 	}
 )
 
-// Call method requests word synonyms from thesaurus API.
-func (a *API) Call(word string) (Response, error) {
+// Lookup method requests word synonyms from thesaurus API.
+func (a *API) Lookup(word string) (Response, error) {
 	// Construct url.
 	url := fmt.Sprintf("%s/2/%s/%s/json", BaseURL, a.Key, word)
 
 	// Call function to handle.
-	body, err := doRequest(url)
+	body, err := a.doRequest(url)
 	if err != nil {
 		return Response{}, err
 	}
@@ -58,9 +59,38 @@ func (a *API) Call(word string) (Response, error) {
 	return resp, err
 }
 
-func doRequest(url string) ([]byte, error) {
+func (a *API) doRequest(url string) ([]byte, error) {
+	// Error message if daily request limit has been exceeded.
+	var usageExceeded = "Usage exceeded: all requests paused until tomorrow in America/Los_Angeles timezone"
+
+	// Get current time in America/Los_Angeles timezone.
+	loc, _ := time.LoadLocation("America/Los_Angeles")
+	now := time.Now().In(loc)
+
+	if a.usageExceeded {
+		if a.lastCalled.Day() == now.Day() {
+			return []byte{}, errors.New(usageExceeded)
+		}
+
+		a.usageExceeded = false
+	}
+
+	body, err := remoteCall(url)
+
+	if strings.Contains(string(body), "Usage Exceeded") {
+		a.usageExceeded = true
+		err = errors.New(usageExceeded)
+	} else {
+		a.lastCalled = now
+	}
+
+	return body, err
+}
+
+func remoteCall(url string) ([]byte, error) {
 	// net.http Client.
 	client := http.Client{}
+	var err error
 
 	resp, err := client.Get(url)
 	if err != nil {
@@ -68,26 +98,22 @@ func doRequest(url string) ([]byte, error) {
 	}
 
 	defer resp.Body.Close()
+
 	switch c := resp.StatusCode; c {
 	case 303:
 		// This occurs when a word similar to the one provided is found.
 		url, _ := resp.Location()
-
-		newResp, err := client.Get(url.String())
-		if err != nil {
-			return []byte{}, err
-		}
-
-		resp = newResp
+		resp, err = client.Get(url.String())
 	case 404:
 		// Return empty content if no word could be found.
-		return []byte{}, nil
+		err = errors.New("Word not found")
 	case 500:
 		// Special cases. Usually this gets triggered if you exceed API limits or get IP banned.
 		errorString := fmt.Sprintf("API returned: %s", resp.Status)
-		return []byte{}, errors.New(errorString)
+		err = errors.New(errorString)
 	}
 
+	// Serialize body into byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
-	return body, nil
+	return body, err
 }
