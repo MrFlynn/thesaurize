@@ -1,7 +1,6 @@
 package discord
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -27,10 +26,7 @@ func InitializeBot(botToken string, thesaurusAPI thesaurus.API) {
 		}
 
 		if strings.HasPrefix(m.Content, "!thesaurize") {
-			newSentence, err := sentence.ThesaurizeSentence(m.Content[11:len(m.Content)], thesaurusAPI)
-			if err != nil {
-				log.Fatal(err)
-			}
+			newSentence := sentence.ThesaurizeSentence(m.Content[12:len(m.Content)], thesaurusAPI)
 
 			s.ChannelMessageSend(m.ChannelID, newSentence)
 		}
@@ -39,7 +35,7 @@ func InitializeBot(botToken string, thesaurusAPI thesaurus.API) {
 	// Open the websocket connection. Handle errors here.
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("Could not open websocket connection. Exiting...", err)
+		log.Fatal("Could not open websocket connection. Exiting...", err)
 		return
 	}
 
