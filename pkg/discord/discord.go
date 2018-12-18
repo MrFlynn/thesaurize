@@ -26,9 +26,19 @@ func InitializeBot(botToken string, thesaurusAPI thesaurus.API) {
 		}
 
 		if strings.HasPrefix(m.Content, "!thesaurize") {
-			newSentence := sentence.ThesaurizeSentence(m.Content[12:len(m.Content)], thesaurusAPI)
+			message := discordgo.MessageSend{}
 
-			s.ChannelMessageSend(m.ChannelID, newSentence)
+			if len(m.Content) == 11 || m.Content == "!thesaurize help" {
+				// Display help dialog.
+				message.Embed = &helpEmbed
+			} else {
+				message.Content = sentence.ThesaurizeSentence(
+					m.Content[12:len(m.Content)],
+					thesaurusAPI,
+				)
+			}
+
+			s.ChannelMessageSendComplex(m.ChannelID, &message)
 		}
 	})
 
