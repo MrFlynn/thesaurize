@@ -1,6 +1,7 @@
 package sentence
 
 import (
+	"log"
 	"math/rand"
 	"reflect"
 	"regexp"
@@ -11,7 +12,7 @@ import (
 )
 
 // ThesaurizeSentence takes a sentence of words and replaces each with a related word.
-func ThesaurizeSentence(sentence string, api thesaurus.API) (string, error) {
+func ThesaurizeSentence(sentence string, api thesaurus.API) string {
 	regx, _ := regexp.Compile("[^a-zA-Z0-9]")
 	randomizer := rand.New(rand.NewSource(time.Now().Unix()))
 
@@ -27,7 +28,7 @@ func ThesaurizeSentence(sentence string, api thesaurus.API) (string, error) {
 		} else {
 			resp, err := api.Lookup(word)
 			if err != nil {
-				return "", err
+				log.Print(err)
 			}
 
 			bucket := compileWordBucket(resp)
@@ -41,7 +42,7 @@ func ThesaurizeSentence(sentence string, api thesaurus.API) (string, error) {
 		}
 	}
 
-	return strings.Join(output, " "), nil
+	return strings.Join(output, " ")
 }
 
 // Compile list of synonyms, related words, etc. that will be used to randomly
