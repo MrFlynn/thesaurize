@@ -29,6 +29,10 @@ func ThesaurizeSentence(sentence string, api thesaurus.API) string {
 			resp, err := api.Lookup(word)
 			if err != nil {
 				log.Print(err)
+
+				if strings.Contains(err.Error(), "Usage exceeded") {
+					return ":x: API Usage Exceeded! :x:"
+				}
 			}
 
 			bucket := compileWordBucket(resp)
