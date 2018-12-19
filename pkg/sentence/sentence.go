@@ -12,7 +12,7 @@ import (
 )
 
 // ThesaurizeSentence takes a sentence of words and replaces each with a related word.
-func ThesaurizeSentence(sentence string, api thesaurus.API) string {
+func ThesaurizeSentence(sentence string, api *thesaurus.API) string {
 	regx, _ := regexp.Compile("[^a-zA-Z0-9]")
 	randomizer := rand.New(rand.NewSource(time.Now().Unix()))
 

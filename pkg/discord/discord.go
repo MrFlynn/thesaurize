@@ -15,7 +15,7 @@ import (
 
 // InitializeBot initializes the discord bot and creates channel to listen for commands
 // and OS events.
-func InitializeBot(botToken string, thesaurusAPI thesaurus.API) {
+func InitializeBot(botToken string, thesaurusAPI *thesaurus.API) {
 	// Initialize the bot.
 	dg, err := discordgo.New("Bot " + botToken)
 
