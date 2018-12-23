@@ -80,9 +80,11 @@ func (a *API) doRequest(url string) ([]byte, error) {
 	// Set the last called time to current time.
 	a.lastCalled = now
 
-	if strings.Contains(err.Error(), "Usage Exceeded") {
-		a.usageExceeded = true
-		err = errors.New(usageExceeded)
+	if err != nil {
+		if strings.Contains(err.Error(), "Usage Exceeded") {
+			a.usageExceeded = true
+			err = errors.New(usageExceeded)
+		}
 	}
 
 	return body, err
