@@ -11,42 +11,81 @@ import (
 	"github.com/MrFlynn/thesaurus-bot/pkg/thesaurus"
 )
 
+// Initialize global randomizer
+var randomizer = rand.New(rand.NewSource(time.Now().Unix()))
+
+// Regexes for recognizing english words and punctutation.
+var wordRegex = regexp.MustCompile("[^a-zA-Z0-9]")
+var puncRegex = regexp.MustCompile("[;.,?!]")
+var capitalRegex = regexp.MustCompile("[A-Z]")
+
 // ThesaurizeSentence takes a sentence of words and replaces each with a related word.
 func ThesaurizeSentence(sentence string, api *thesaurus.API) string {
-	regx, _ := regexp.Compile("[^a-zA-Z0-9]")
-	randomizer := rand.New(rand.NewSource(time.Now().Unix()))
+	sentenceArray := strings.Split(sentence, " ")
+	output := make([]string, 0, len(sentenceArray))
 
-	stringArray := strings.Split(sentence, " ")
-	output := make([]string, 0, len(stringArray))
+	for i := range sentenceArray {
+		word, err := chooseWord(sentenceArray[i], api)
+		if err != nil {
+			log.Print(err)
 
-	for i := range stringArray {
-		originalWord := regx.ReplaceAllString(stringArray[i], "")
-		word := strings.ToLower(originalWord)
-
-		if _, ok := ignoreWords[word]; ok {
-			output = append(output, originalWord)
-		} else {
-			resp, err := api.Lookup(word)
-			if err != nil {
-				log.Print(err)
-
-				if strings.Contains(err.Error(), "Usage exceeded") {
-					return ":x: API Usage Exceeded! :x:"
-				}
-			}
-
-			bucket := compileWordBucket(resp)
-			if len(bucket) == 0 {
-				// If thesaurus could not find synonym then return the input word.
-				output = append(output, originalWord)
-			} else {
-				idx := randomizer.Intn(len(bucket))
-				output = append(output, bucket[idx])
+			if strings.Contains(err.Error(), "Usage exceeded") {
+				return ":x: API Usage Exceeded! :x:"
 			}
 		}
+
+		output = append(output, word)
 	}
 
 	return strings.Join(output, " ")
+}
+
+func chooseWord(word string, api *thesaurus.API) (string, error) {
+	// Ignore word outright if it is in the ignore words list.
+	if v, ok := ignoreWords[word]; ok {
+		if v {
+			return word, nil
+		}
+	}
+
+	// Strip punctuation from word.
+	strippedWord := wordRegex.ReplaceAllString(word, "")
+
+	resp, err := api.Lookup(strippedWord)
+	if err != nil {
+		return word, err
+	}
+
+	similarWordList := compileWordBucket(resp)
+
+	// Choose word using randomizer.
+	randIndex := randomizer.Intn(len(similarWordList))
+	outputWord := similarWordList[randIndex]
+
+	// Handle punctuation and capital letters.
+	outputWord = handlePunctuation(outputWord, word)
+
+	return outputWord, nil
+}
+
+func handlePunctuation(newWord string, originalWord string) string {
+	matchIndices := puncRegex.FindAllStringSubmatchIndex(originalWord, -1)
+
+	for i := range matchIndices {
+		// Calculate the offset required to insert the original punctuation
+		// into the new word.
+		offset := len(originalWord) - len(newWord)
+
+		// Start and end indices of punctuation.
+		start := matchIndices[i][0] - offset
+		end := matchIndices[i][1] - offset
+
+		// Get punctuation mark and insert into new string.
+		punctuationMark := string(originalWord[matchIndices[i][0]])
+		newWord = newWord[:start+1] + punctuationMark + newWord[end:]
+	}
+
+	return newWord
 }
 
 // Compile list of synonyms, related words, etc. that will be used to randomly
