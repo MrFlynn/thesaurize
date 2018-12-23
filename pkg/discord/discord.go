@@ -32,8 +32,10 @@ func InitializeBot(botToken string, thesaurusAPI *thesaurus.API) {
 				// Display help dialog.
 				message.Embed = &helpEmbed
 			} else {
+				content := m.ContentWithMentionsReplaced()
+
 				message.Content = sentence.ThesaurizeSentence(
-					m.Content[12:len(m.Content)],
+					content[12:len(content)],
 					thesaurusAPI,
 				)
 			}
