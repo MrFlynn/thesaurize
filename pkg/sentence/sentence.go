@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MrFlynn/thesaurus-bot/pkg/thesaurus"
+	"github.com/MrFlynn/thesaurize-bot/pkg/thesaurus"
 )
 
 // Initialize global randomizer

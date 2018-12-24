@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/MrFlynn/thesaurus-bot/pkg/discord"
-	"github.com/MrFlynn/thesaurus-bot/pkg/thesaurus"
+	"github.com/MrFlynn/thesaurize-bot/pkg/discord"
+	"github.com/MrFlynn/thesaurize-bot/pkg/thesaurus"
 )
 
 func main() {

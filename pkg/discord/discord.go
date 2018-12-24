@@ -7,8 +7,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/MrFlynn/thesaurus-bot/pkg/sentence"
-	"github.com/MrFlynn/thesaurus-bot/pkg/thesaurus"
+	"github.com/MrFlynn/thesaurize-bot/pkg/sentence"
+	"github.com/MrFlynn/thesaurize-bot/pkg/thesaurus"
 
 	"github.com/bwmarrin/discordgo"
 )
