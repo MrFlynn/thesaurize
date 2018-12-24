@@ -64,6 +64,7 @@ func chooseWord(word string, api *thesaurus.API) (string, error) {
 
 	// Handle punctuation and capital letters.
 	outputWord = handlePunctuation(outputWord, word)
+	outputWord = handleCapitalization(outputWord, strippedWord)
 
 	return outputWord, nil
 }
@@ -86,6 +87,18 @@ func handlePunctuation(newWord string, originalWord string) string {
 	}
 
 	return newWord
+}
+
+func handleCapitalization(newWord string, originalWord string) string {
+	res := strings.Join(capitalRegex.FindAllString(originalWord, -1), "")
+
+	if res == string(originalWord[0]) {
+		return strings.Title(newWord)
+	} else if res == originalWord {
+		return strings.ToUpper(newWord)
+	} else {
+		return newWord
+	}
 }
 
 // Compile list of synonyms, related words, etc. that will be used to randomly
