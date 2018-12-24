@@ -27,7 +27,7 @@ func ThesaurizeSentence(sentence string, api *thesaurus.API) string {
 	for i := range sentenceArray {
 		word, err := chooseWord(sentenceArray[i], api)
 		if err != nil {
-			log.Print(err)
+			log.Print(err, ": "+sentenceArray[i])
 
 			if strings.Contains(err.Error(), "Usage exceeded") {
 				return ":x: API Usage Exceeded! :x:"
