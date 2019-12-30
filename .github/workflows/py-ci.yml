@@ -1,0 +1,35 @@
+name: Python CI
+
+on:
+  push:
+    paths:
+      - 'loader-tool/*'
+      - '.github/workflows/py-ci.yml'
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Install poetry
+        uses: MrFlynn/actions-poetry@19b0522
+        with:
+          python_version: 3.8.0
+          poetry_version: 1.0.0
+          working_directory: ./loader-tool
+          args: install
+      - name: Run unit tests
+        uses: MrFlynn/actions-poetry@19b0522
+        with:
+          python_version: 3.8.0
+          poetry_version: 1.0.0
+          working_directory: ./loader-tool
+          args: run python -m pytest -vv tests/
+      - name: Validate formatting
+        uses: MrFlynn/actions-poetry@19b0522
+        with:
+          python_version: 3.8.0
+          poetry_version: 1.0.0
+          working_directory: ./loader-tool
+          args: run python -m black --check .
