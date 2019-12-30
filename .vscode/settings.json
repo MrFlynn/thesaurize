@@ -1,0 +1,9 @@
+{
+    "python.pythonPath": "/home/nick/.pyenv/versions/loader-tool/bin/python",
+    "python.testing.pytestArgs": [
+        "loader-tool/tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pytestEnabled": true
+}
