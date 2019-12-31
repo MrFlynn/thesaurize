@@ -24,7 +24,7 @@ class Loader:
         if args.encoding:
             self.encoding = args.encoding
 
-        self._redis: aioredis.RedisConnection = None
+        self._redis: aioredis.Redis = None
 
         self._tx_buffer: BUFF_T = deepcopy(TX_BUFFER_TEMPLATE)
         self._tx_buffer_size = 0
@@ -62,7 +62,7 @@ class Loader:
             for word, synonyms in section.items():
                 pipeline.sadd(f"{lexograph}:{word}", *synonyms)
 
-        await self._redis.execute()
+        await pipeline.execute()
         self._tx_buffer = deepcopy(TX_BUFFER_TEMPLATE)
 
     def read(self) -> typing.Iterator[str]:
@@ -84,23 +84,22 @@ class Loader:
 
                 yield line
 
-    def read_word_metadata(self, reader: typing.Callable[[], typing.Iterator[str]]) -> None:
-        gen = reader()
-        word, num_sections = next(gen).split("|")
+    def read_word_metadata(self, reader: typing.Iterator[str]) -> None:
+        word, num_sections = next(reader).split("|")
 
         for _ in range(int(num_sections)):
-            items = next(gen).split("|")
+            items = next(reader).split("|")
             section = items[0][1:-1]  # Remove parentheses.
 
             self.push_to_buffer(word, section, *items[1:])
 
     async def run(self) -> None:
-        self._redis = await aioredis.create_connection(self.args.connection)
+        self._redis = await aioredis.create_redis(self.args.connection)
         log.info("Database connected.")
 
         # Check if first line of encoding matches first line of file.
         reader = self.read()
-        if (encoding := next(reader)) != self.encoding.lower():
+        if (encoding := next(reader).lower()) != self.encoding:
             log.error(f"Encoding mismatch! Expected {self.encoding}, got {encoding}.")
             return
 

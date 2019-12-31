@@ -113,7 +113,8 @@ def test_metadata_reader(create_data_file):
     args = argparse.Namespace(encoding=None, file=create_data_file)
     l = Loader(args)
 
-    l.read_word_metadata(l.read)
+    reader = l.read()
+    l.read_word_metadata(reader)
 
     full, buffer = l.buffer
 
