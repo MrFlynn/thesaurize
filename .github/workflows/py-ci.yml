@@ -3,7 +3,7 @@ name: Python CI
 on:
   push:
     paths:
-      - 'loader-tool/*'
+      - 'loader-tool/**'
       - '.github/workflows/py-ci.yml'
 
 jobs:
