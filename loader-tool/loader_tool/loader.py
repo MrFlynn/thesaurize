@@ -2,6 +2,7 @@ import aioredis
 import argparse
 import codecs
 import logging
+import os
 import typing
 
 from copy import deepcopy
@@ -62,6 +63,7 @@ class Loader:
                 pipeline.sadd(f"{lexograph}:{word}", *synonyms)
 
         await self._redis.execute()
+        self._tx_buffer = deepcopy(TX_BUFFER_TEMPLATE)
 
     def read(self) -> typing.Iterator[str]:
         if not self.args.file.exists() or not self.args.file.is_file():
@@ -69,12 +71,44 @@ class Loader:
             return
 
         with self.args.file.open("rb") as f:
+            # Get the size of the file.
+            file_size = os.fstat(f.fileno()).st_size
+
             # Create buffered reader.
             reader = self._encoding.streamreader(f)
 
-            # Keep reading lines until empty string is detected. This is out EOF.
-            while (line := reader.readline(keepends=False)) != "":
+            # Keep reading lines until current position exceeds file size.
+            while line := reader.readline(keepends=False):
+                if f.tell() > file_size:
+                    break
+
                 yield line
 
-    async def run(self):
-        self._tx_buffer = await aioredis.create_connection(self.args.connection)
+    def read_word_metadata(self, reader: typing.Callable[[], typing.Iterator[str]]) -> None:
+        gen = reader()
+        word, num_sections = next(gen).split("|")
+
+        for _ in range(int(num_sections)):
+            items = next(gen).split("|")
+            section = items[0][1:-1]  # Remove parentheses.
+
+            self.push_to_buffer(word, section, *items[1:])
+
+    async def run(self) -> None:
+        self._redis = await aioredis.create_connection(self.args.connection)
+        log.info("Database connected.")
+
+        # Check if first line of encoding matches first line of file.
+        reader = self.read()
+        if (encoding := next(reader)) != self.encoding.lower():
+            log.error(f"Encoding mismatch! Expected {self.encoding}, got {encoding}.")
+            return
+
+        while True:
+            try:
+                self.read_word_metadata(reader)
+                await self.push_redis()
+            except StopIteration:
+                await self.push_redis()
+
+                log.info("File imported to database.")

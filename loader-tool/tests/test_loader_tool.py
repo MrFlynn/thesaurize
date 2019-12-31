@@ -7,8 +7,9 @@ from pathlib import Path
 
 # Default and utilities.
 BASIC_ARGS = argparse.Namespace(encoding=None)
-DATAFILE_CONTENT = """hello
-world
+DATAFILE_CONTENT = """hello|2
+(noun)|greetings
+(verb)|hullo
 """
 
 
@@ -105,5 +106,21 @@ def test_reader(create_data_file):
     args = argparse.Namespace(encoding=None, file=create_data_file)
     l = Loader(args)
 
-    print(args.file)
-    assert list(l.read()) == ["hello", "world"]
+    assert list(l.read()) == ["hello|2", "(noun)|greetings", "(verb)|hullo"]
+
+
+def test_metadata_reader(create_data_file):
+    args = argparse.Namespace(encoding=None, file=create_data_file)
+    l = Loader(args)
+
+    l.read_word_metadata(l.read)
+
+    full, buffer = l.buffer
+
+    assert full == False
+    assert buffer == {
+        "noun": {"hello": ["greetings"]},
+        "verb": {"hello": ["hullo"]},
+        "adj": {},
+        "adv": {},
+    }
