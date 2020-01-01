@@ -1,4 +1,4 @@
-name: Python CI
+name: Loader-Tool CI
 
 on:
   push:
@@ -20,19 +20,19 @@ jobs:
         with:
           python_version: ${{ matrix.python-version }}
           poetry_version: ${{ matrix.poetry-version }}
-          working_directory: ./loader-tool
+          working_directory: ./tools/loader-tool
           args: install
       - name: "Run unit tests (Poetry: ${{ matrix.poetry-version }}, Python: ${{ matrix.python-version }})"
         uses: MrFlynn/actions-poetry@19b0522
         with:
           python_version: ${{ matrix.python-version }}
           poetry_version: ${{ matrix.poetry-version }}
-          working_directory: ./loader-tool
+          working_directory: ./tools/loader-tool
           args: run python -m pytest -vv tests/
       - name: "Validate formatting (Poetry: ${{ matrix.poetry-version }}, Python: ${{ matrix.python-version }})"
         uses: MrFlynn/actions-poetry@19b0522
         with:
           python_version: ${{ matrix.python-version }}
           poetry_version: ${{ matrix.poetry-version }}
-          working_directory: ./loader-tool
+          working_directory: ./tools/loader-tool
           args: run python -m black --check .
