@@ -7,23 +7,31 @@ from loader_tool import Loader
 
 
 def get_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(prog="loader", description="Loads thesaurus data file into Redis datastore.")
+    parser = argparse.ArgumentParser(
+        prog="loader", description="Loads thesaurus data file into Redis datastore."
+    )
 
-    parser.add_argument("--file", "-f", required=True, type=pathlib.Path, help="Path to .dat file containing thesaurus.")
-    parser.add_argument("--connection", "-c", required=True, type=str, help="Redis URI to connect to.")
+    parser.add_argument(
+        "--file",
+        "-f",
+        required=True,
+        type=pathlib.Path,
+        help="Path to .dat file containing thesaurus.",
+    )
+    parser.add_argument(
+        "--connection", "-c", required=True, type=str, help="Redis URI to connect to."
+    )
     parser.add_argument("--encoding", "-e", required=False, type=str, help="Data file encoding.")
 
     return parser.parse_args()
 
 
 def setup_logging() -> None:
-    log = logging.getLogger(__name__)
+    log = logging.getLogger("loader-tool")
     log.setLevel(logging.INFO)
 
     handler = logging.StreamHandler()
-    handler.setFormatter(
-        logging.Formatter("%(asctime)s %(levelname)s:%(message)s")
-    )
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s:%(message)s"))
 
     log.addHandler(handler)
 

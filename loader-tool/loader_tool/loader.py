@@ -6,14 +6,15 @@ import os
 import typing
 
 from copy import deepcopy
+from progress.bar import Bar
 
 DEFAULT_ENCODING = codecs.lookup("ISO8859-1")
 
 BUFF_T = typing.TypeVar("BUFF_T", bound=typing.Dict[str, typing.Dict[str, typing.Any]])
-TX_BUFFER_MAX_SIZE = 100
+TX_BUFFER_MAX_SIZE = 10000
 TX_BUFFER_TEMPLATE = {"noun": {}, "verb": {}, "adj": {}, "adv": {}}
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("loader-tool")
 
 
 class Loader:
@@ -28,6 +29,9 @@ class Loader:
 
         self._tx_buffer: BUFF_T = deepcopy(TX_BUFFER_TEMPLATE)
         self._tx_buffer_size = 0
+        self._terminate = False
+
+        self._progress = Bar("Loading Data", suffix="%(percent).1f%% - %(eta)ds", max=100)
 
     @property
     def encoding(self) -> str:
@@ -49,21 +53,21 @@ class Loader:
         else:
             self._tx_buffer[section][word].extend(list(args))
 
-    async def push_redis(self) -> None:
+    async def push_redis(self, push_remaining: bool = False) -> None:
         if not self._redis:
             log.error("Redis connection not setup.")
             return
 
-        if self._tx_buffer_size < TX_BUFFER_MAX_SIZE:
-            return
+        full, _ = self.buffer
+        if full or push_remaining:
+            pipeline = self._redis.pipeline()
 
-        pipeline = self._redis.pipeline()
-        for lexograph, section in self._tx_buffer.items():
-            for word, synonyms in section.items():
-                pipeline.sadd(f"{lexograph}:{word}", *synonyms)
+            for lexograph, section in self._tx_buffer.items():
+                for word, synonyms in section.items():
+                    pipeline.sadd(f"{lexograph}:{word}", *synonyms)
 
-        await pipeline.execute()
-        self._tx_buffer = deepcopy(TX_BUFFER_TEMPLATE)
+            await pipeline.execute()
+            self._tx_buffer = deepcopy(TX_BUFFER_TEMPLATE)
 
     def read(self) -> typing.Iterator[str]:
         if not self.args.file.exists() or not self.args.file.is_file():
@@ -73,29 +77,34 @@ class Loader:
         with self.args.file.open("rb") as f:
             # Get the size of the file.
             file_size = os.fstat(f.fileno()).st_size
+            self._progress.max = file_size
 
             # Create buffered reader.
             reader = self._encoding.streamreader(f)
 
             # Keep reading lines until current position exceeds file size.
             while line := reader.readline(keepends=False):
-                if f.tell() > file_size:
-                    break
-
+                self._progress.next(n=(f.tell() - self._progress.index))
                 yield line
 
+                if f.tell() + len(line) >= file_size:
+                    break
+
     def read_word_metadata(self, reader: typing.Iterator[str]) -> None:
-        word, num_sections = next(reader).split("|")
+        try:
+            word, num_sections = next(reader).split("|")
 
-        for _ in range(int(num_sections)):
-            items = next(reader).split("|")
-            section = items[0][1:-1]  # Remove parentheses.
+            for _ in range(int(num_sections)):
+                items = next(reader).split("|")
+                section = items[0][1:-1]  # Remove parentheses.
 
-            self.push_to_buffer(word, section, *items[1:])
+                self.push_to_buffer(word, section, *items[1:])
+        except StopIteration:
+            self._terminate = True
 
     async def run(self) -> None:
         self._redis = await aioredis.create_redis(self.args.connection)
-        log.info("Database connected.")
+        log.debug("Database connected.")
 
         # Check if first line of encoding matches first line of file.
         reader = self.read()
@@ -103,11 +112,9 @@ class Loader:
             log.error(f"Encoding mismatch! Expected {self.encoding}, got {encoding}.")
             return
 
-        while True:
-            try:
-                self.read_word_metadata(reader)
-                await self.push_redis()
-            except StopIteration:
-                await self.push_redis()
+        while not self._terminate:
+            self.read_word_metadata(reader)
+            await self.push_redis(push_remaining=self._terminate)
 
-                log.info("File imported to database.")
+        log.debug("Database finished loading.")
+        self._redis.close()
