@@ -8,28 +8,31 @@ on:
 
 jobs:
   ci:
-    name: CI
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8.0, 3.8.1]
+        poetry-version: [1.0.0]
     steps:
       - uses: actions/checkout@master
-      - name: Install poetry
+      - name: "Install (Poetry: ${{ matrix.poetry-version }}, Python: ${{ matrix.python-version }})"
         uses: MrFlynn/actions-poetry@19b0522
         with:
-          python_version: 3.8.0
-          poetry_version: 1.0.0
+          python_version: ${{ matrix.python-version }}
+          poetry_version: ${{ matrix.poetry-version }}
           working_directory: ./loader-tool
           args: install
-      - name: Run unit tests
+      - name: "Run unit tests (Poetry: ${{ matrix.poetry-version }}, Python: ${{ matrix.python-version }})"
         uses: MrFlynn/actions-poetry@19b0522
         with:
-          python_version: 3.8.0
-          poetry_version: 1.0.0
+          python_version: ${{ matrix.python-version }}
+          poetry_version: ${{ matrix.poetry-version }}
           working_directory: ./loader-tool
           args: run python -m pytest -vv tests/
-      - name: Validate formatting
+      - name: "Validate formatting (Poetry: ${{ matrix.poetry-version }}, Python: ${{ matrix.python-version }})"
         uses: MrFlynn/actions-poetry@19b0522
         with:
-          python_version: 3.8.0
-          poetry_version: 1.0.0
+          python_version: ${{ matrix.python-version }}
+          poetry_version: ${{ matrix.poetry-version }}
           working_directory: ./loader-tool
           args: run python -m black --check .
