@@ -82,13 +82,16 @@ class Loader:
             # Create buffered reader.
             reader = self._encoding.streamreader(f)
 
-            # Keep reading lines until current position exceeds file size.
+            size = 0
             while line := reader.readline(keepends=False):
-                self._progress.next(n=(f.tell() - self._progress.index))
-                yield line
-
-                if f.tell() + len(line) >= file_size:
+                # Keep reading lines until current position exceeds file size.
+                if size >= file_size:
                     break
+
+                self._progress.next(n=(f.tell() - self._progress.index))
+
+                size += len(line.encode()) + 1  # Account for line endings.
+                yield line
 
     def read_word_metadata(self, reader: typing.Iterator[str]) -> None:
         try:
