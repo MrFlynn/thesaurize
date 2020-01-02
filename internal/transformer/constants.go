@@ -1,4 +1,4 @@
-package sentence
+package transformer
 
 // List of words that should not be looked up in thesaurus.
 var ignoreWords = map[string]bool{
