@@ -12,7 +12,7 @@
 *.out
 
 # Ignore name of the application.
-thesaurus-bot
+**/bot/bot
 
 # Ignore MacOS files.
 .DS_Store
