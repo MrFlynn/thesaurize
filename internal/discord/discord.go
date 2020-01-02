@@ -1,26 +1,41 @@
 package discord
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"strings"
-	"syscall"
 
-	"github.com/MrFlynn/thesaurize-bot/pkg/sentence"
-	"github.com/MrFlynn/thesaurize-bot/pkg/thesaurus"
-
+	"github.com/MrFlynn/thesaurize-bot/internal/database"
+	"github.com/MrFlynn/thesaurize-bot/internal/transformer"
 	"github.com/bwmarrin/discordgo"
+	"github.com/urfave/cli/v2"
 )
 
-// InitializeBot initializes the discord bot and creates channel to listen for commands
-// and OS events.
-func InitializeBot(botToken string, thesaurusAPI *thesaurus.API) {
-	// Initialize the bot.
-	dg, err := discordgo.New("Bot " + botToken)
+// bot type provides methods for communicating with discord.
+type bot struct {
+	key            string
+	database       database.Database
+	serviceHandler *discordgo.Session
+}
 
-	// Add a handler for listening for "!thesaurize" command.
-	dg.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+func new(ctx *cli.Context) (bot, error) {
+	service, err := discordgo.New("Bot " + ctx.String("token"))
+	if err != nil {
+		log.Println("Could not initialize bot subsystem")
+		return bot{}, err
+	}
+
+	return bot{
+		key:            ctx.String("token"),
+		database:       database.New(ctx.String("datastore")),
+		serviceHandler: service,
+	}, nil
+}
+
+func (b *bot) registerHandlers() {
+	b.serviceHandler.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if m.Author.ID == s.State.User.ID {
 			return
 		}
@@ -34,27 +49,50 @@ func InitializeBot(botToken string, thesaurusAPI *thesaurus.API) {
 			} else {
 				content := m.ContentWithMentionsReplaced()
 
-				message.Content = sentence.ThesaurizeSentence(
+				message.Content = transformer.Transform(
 					content[12:len(content)],
-					thesaurusAPI,
+					b.database,
 				)
 			}
 
 			s.ChannelMessageSendComplex(m.ChannelID, &message)
 		}
 	})
+}
 
-	// Open the websocket connection. Handle errors here.
-	err = dg.Open()
+func (b *bot) run() error {
+	err := b.serviceHandler.Open()
 	if err != nil {
-		log.Fatal("Could not open websocket connection. Exiting...", err)
-		return
+		log.Println("Could not open connection to discord. Exiting...")
+		return err
 	}
 
-	defer dg.Close()
+	defer b.serviceHandler.Close()
 
-	// Make the channel and set the channel notifications.
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	<-sc
+	log.Print("Bot connected to discord")
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+
+	<-c
+
+	fmt.Printf("\n")
+	log.Println("Bot shutting down. Goodbye...")
+
+	return nil
+}
+
+// Run creates a bot and runs it. This provides the primary entrypoint into the bot. This function
+// is called directly by the main function in the main package.
+func Run(ctx *cli.Context) error {
+	bot, err := new(ctx)
+
+	if err != nil {
+		log.Print("Could not initialize bot")
+		return err
+	}
+
+	bot.registerHandlers()
+
+	return bot.run()
 }
