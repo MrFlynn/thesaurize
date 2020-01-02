@@ -7,7 +7,9 @@ func Transform(sentence string, db database.Database) string {
 	words := generateMetadataFromSentence(sentence)
 
 	for _, meta := range words {
-		meta.Word = db.GetBestCandidateWord(meta.Word)
+		if _, ok := ignoreWords[meta.Word]; !ok {
+			meta.Word = db.GetBestCandidateWord(meta.Word)
+		}
 	}
 
 	return constructSentence(words)
