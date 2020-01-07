@@ -9,17 +9,19 @@ import (
 
 func main() {
 	app := &cli.App{
-		Name: "thesaurize",
+		Name:    "thesaurize",
+		Version: "0.1.0",
+		Usage:   "A Discord bot to make statements sound ridiculous.",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "token",
-				Aliases:  []string{"-t"},
+				Aliases:  []string{"t"},
 				Usage:    "Discord API key.",
 				Required: true,
 			},
 			&cli.StringFlag{
 				Name:     "datastore",
-				Aliases:  []string{"-s"},
+				Aliases:  []string{"s"},
 				Usage:    "URI of Redis datastore. Formatted like redis://<address>:<port>",
 				Required: true,
 			},
