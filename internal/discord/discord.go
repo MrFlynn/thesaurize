@@ -43,7 +43,7 @@ func (b *bot) registerHandlers() {
 		if strings.HasPrefix(m.Content, "!thesaurize") {
 			message := discordgo.MessageSend{}
 
-			if len(m.Content) == 11 || m.Content == "!thesaurize help" {
+			if m.Content == "!thesaurize help" {
 				// Display help dialog.
 				message.Embed = &helpEmbed
 			} else {
