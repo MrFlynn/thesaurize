@@ -3,6 +3,8 @@ package transformer
 import (
 	"regexp"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 type capitalization int
@@ -65,24 +67,54 @@ func generateMetadataFromSentence(sentence string) []*wordMetadata {
 }
 
 func constructSentence(metadataSlice []*wordMetadata) string {
-	var result strings.Builder
+	var loopContinue bool
+	var b strings.Builder
+	builder := &b
 
 	for _, word := range metadataSlice {
 		switch word.Capitalization {
 		case firstCapitzlized:
-			result.WriteString(strings.Title(word.Word))
+			loopContinue = writeIfValid(builder, capitalize(word.Word))
 		case allCapitalized:
-			result.WriteString(strings.ToUpper(word.Word))
+			loopContinue = writeIfValid(builder, strings.ToUpper(word.Word))
 		default:
-			result.WriteString(word.Word)
+			loopContinue = writeIfValid(builder, word.Word)
 		}
 
 		if word.HasPunctuation {
-			result.WriteString(word.Punctuation)
+			loopContinue = writeIfValid(builder, word.Punctuation)
 		}
 
-		result.WriteString(" ")
+		if !loopContinue {
+			break
+		}
+
+		builder.WriteString(" ")
 	}
 
-	return result.String()
+	return builder.String()
+}
+
+func writeIfValid(builder *strings.Builder, s string) bool {
+	if len(s)+builder.Len() >= 1997 {
+		builder.WriteString("...")
+		return false
+	}
+
+	builder.WriteString(s)
+	return true
+}
+
+func capitalize(s string) string {
+	if len(s) > 0 {
+		r, sz := utf8.DecodeRuneInString(s)
+		if r != utf8.RuneError || sz > 1 {
+			upper := unicode.ToUpper(r)
+			if upper != r {
+				s = string(upper) + s[sz:]
+			}
+		}
+	}
+
+	return s
 }
