@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strings"
+	"reflect"
+	"runtime"
 
 	"github.com/MrFlynn/thesaurize-bot/internal/database"
-	"github.com/MrFlynn/thesaurize-bot/internal/transformer"
 	"github.com/bwmarrin/discordgo"
 	"github.com/urfave/cli/v2"
 )
@@ -34,28 +34,16 @@ func new(ctx *cli.Context) (bot, error) {
 	}, nil
 }
 
-func (b *bot) registerHandlers() {
+func (b *bot) registerHandler(handler func(s *discordgo.Session, m *discordgo.MessageCreate, d database.Database) error) {
 	b.serviceHandler.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if m.Author.ID == s.State.User.ID {
 			return
 		}
 
-		if strings.HasPrefix(m.Content, "!thesaurize") {
-			message := discordgo.MessageSend{}
-
-			if m.Content == "!thesaurize help" {
-				// Display help dialog.
-				message.Embed = &helpEmbed
-			} else {
-				content := m.ContentWithMentionsReplaced()
-
-				message.Content = transformer.Transform(
-					content[12:len(content)],
-					b.database,
-				)
-			}
-
-			s.ChannelMessageSendComplex(m.ChannelID, &message)
+		err := handler(s, m, b.database)
+		if err != nil {
+			name := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+			log.Printf("Got error: %s from handler %s", err, name)
 		}
 	})
 }
@@ -92,7 +80,7 @@ func Run(ctx *cli.Context) error {
 		return err
 	}
 
-	bot.registerHandlers()
+	bot.registerHandler(commandHandler)
 
 	return bot.run()
 }

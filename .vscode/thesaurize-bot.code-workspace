@@ -4,7 +4,7 @@
 			"path": ".."
 		},
 		{
-			"path": "../loader-tool"
+			"path": "../tools/loader-tool"
 		}
 	],
 	"settings": {}

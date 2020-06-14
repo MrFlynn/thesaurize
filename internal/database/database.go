@@ -56,8 +56,8 @@ func (d Database) GetBestCandidateWord(word string) string {
 		return nil
 	})
 
-	if err != redis.Nil {
-		log.Printf("Could not access datastore for word %s", word)
+	if err != nil {
+		log.Printf("Could not access datastore for word: %s, %s", word, err)
 		return word
 	}
 
