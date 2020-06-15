@@ -98,6 +98,22 @@ func TestPostPuncCreateWordMetadata(t *testing.T) {
 	}
 }
 
+func TestNewlineCreateWordMetadata(t *testing.T) {
+	meta, word := createWordMetadata("hello\n\n")
+	expected := &WordMetadata{
+		Capitalization: 0,
+		PostPunc:       "\n\n",
+	}
+
+	if !cmp.Equal(meta, expected) {
+		t.Errorf("Expected: %+v\n Got: %+v\n", expected, meta)
+	}
+
+	if word != "hello" {
+		t.Errorf("Expected \"hello\", got: %s", word)
+	}
+}
+
 func TestPunctuationNewWordMetadata(t *testing.T) {
 	meta, word := createWordMetadata("hello,.!?---!")
 	expected := &WordMetadata{

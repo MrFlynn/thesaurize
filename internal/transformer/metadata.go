@@ -16,7 +16,7 @@ const (
 )
 
 // Regexes for handling how to split messages into usable components.
-var wordSplitRegex = regexp.MustCompile(`\w\b-+|\S+`)
+var wordSplitRegex = regexp.MustCompile(`(\w+\b-+|\S+)[\n]*`)
 var punctuationRegex = regexp.MustCompile(`^(\W+)|(\W+)$`)
 var capitalRegex = regexp.MustCompile(`\b[A-Z]+`)
 
@@ -129,8 +129,13 @@ func (m MessageMetadata) String() string {
 			builder.WriteString(meta.PrePunc)
 			builder.WriteString(m.capitalize(word, idx))
 			builder.WriteString(meta.PostPunc)
+
+			if !strings.HasSuffix(meta.PostPunc, "\n") {
+				builder.WriteString(" ")
+			}
 		} else {
 			builder.WriteString(word)
+			builder.WriteString(" ")
 		}
 
 		if builder.Len() >= 1997 {
@@ -140,7 +145,6 @@ func (m MessageMetadata) String() string {
 			break
 		}
 
-		builder.WriteString(" ")
 		builder.Flush()
 	}
 
