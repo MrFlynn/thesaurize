@@ -2,10 +2,11 @@ package database
 
 import (
 	"fmt"
-	"github.com/go-redis/redis/v7"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/go-redis/redis/v7"
 )
 
 // Database type acts as the control interface for the Redis datastore.
@@ -56,7 +57,7 @@ func (d Database) GetBestCandidateWord(word string) string {
 		return nil
 	})
 
-	if err != nil {
+	if err != redis.Nil && err != nil {
 		log.Printf("Could not access datastore for word: %s, %s", word, err)
 		return word
 	}
