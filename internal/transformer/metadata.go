@@ -82,12 +82,14 @@ func createWordMetadata(word string) (*WordMetadata, string) {
 type MessageMetadata struct {
 	Words    []string
 	Metadata []*WordMetadata
+	size     uint32
 }
 
 // New initializes message metadata struct from a string.
 func (m *MessageMetadata) New(message string) {
 	wordList := words.FindAllString(message, -1)
 
+	m.size = uint32(len(message))
 	m.Words = make([]string, len(wordList))
 	m.Metadata = make([]*WordMetadata, len(wordList))
 
@@ -99,93 +101,52 @@ func (m *MessageMetadata) New(message string) {
 	}
 }
 
-type wordMetadata struct {
-	Word           string
-	HasPunctuation bool
-	Punctuation    string
-	Capitalization capitalization
-}
-
-func newWordMetadata(word string) *wordMetadata {
-	punctuationChars := punctuationRegex.FindString(word)
-	hasPunctuation := false
-
-	if punctuationChars != "" {
-		hasPunctuation = true
-		word = punctuationRegex.ReplaceAllLiteralString(word, "")
+func (m MessageMetadata) capitalize(word string, idx int) string {
+	if m.Metadata[idx] == nil {
+		return word
 	}
 
-	var capitalizationMode capitalization
-	switch len(capitalRegex.FindString(word)) {
-	case 0:
-		capitalizationMode = noCapitalization
-	case 1:
-		capitalizationMode = firstCapitzlized
-		word = strings.ToLower(word)
+	switch m.Metadata[idx].Capitalization {
+	case firstCapitzlized:
+		return capitalizeFirst(word)
+	case allCapitalized:
+		return strings.ToUpper(word)
 	default:
-		capitalizationMode = allCapitalized
-		word = strings.ToLower(word)
-	}
-
-	return &wordMetadata{
-		Word:           word,
-		HasPunctuation: hasPunctuation,
-		Punctuation:    punctuationChars,
-		Capitalization: capitalizationMode,
+		return word
 	}
 }
 
-func generateMetadataFromSentence(sentence string) []*wordMetadata {
-	sentenceSlice := words.FindAllString(sentence, -1)
-	result := make([]*wordMetadata, 0, len(sentenceSlice))
+func (m MessageMetadata) String() string {
+	builder := ReversibleStringBuilder{}
+	builder.Init()
 
-	for _, word := range sentenceSlice {
-		result = append(result, newWordMetadata(word))
-	}
+	// Grow the buffer so that we have some headroom over the original string.
+	builder.Grow(int(1.2 * float32(m.size)))
 
-	return result
-}
-
-func constructSentence(metadataSlice []*wordMetadata) string {
-	var loopContinue bool
-	var b strings.Builder
-	builder := &b
-
-	for _, word := range metadataSlice {
-		switch word.Capitalization {
-		case firstCapitzlized:
-			loopContinue = writeIfValid(builder, capitalize(word.Word))
-		case allCapitalized:
-			loopContinue = writeIfValid(builder, strings.ToUpper(word.Word))
-		default:
-			loopContinue = writeIfValid(builder, word.Word)
+	for idx, word := range m.Words {
+		if meta := m.Metadata[idx]; meta != nil {
+			builder.WriteString(meta.PrePunc)
+			builder.WriteString(m.capitalize(word, idx))
+			builder.WriteString(meta.PostPunc)
+		} else {
+			builder.WriteString(word)
 		}
 
-		if word.HasPunctuation {
-			loopContinue = writeIfValid(builder, word.Punctuation)
-		}
+		if builder.Len() >= 1997 {
+			builder.Reverse(-1)
+			builder.WriteString("....")
 
-		if !loopContinue {
 			break
 		}
 
 		builder.WriteString(" ")
+		builder.Flush()
 	}
 
-	return builder.String()
+	return builder.String()[:builder.Len()-1]
 }
 
-func writeIfValid(builder *strings.Builder, s string) bool {
-	if len(s)+builder.Len() >= 1997 {
-		builder.WriteString("...")
-		return false
-	}
-
-	builder.WriteString(s)
-	return true
-}
-
-func capitalize(s string) string {
+func capitalizeFirst(s string) string {
 	if len(s) > 0 {
 		r, sz := utf8.DecodeRuneInString(s)
 		if r != utf8.RuneError || sz > 1 {
