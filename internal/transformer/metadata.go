@@ -15,7 +15,8 @@ const (
 	allCapitalized
 )
 
-var words = regexp.MustCompile(`\b[^\s-]+\b[^\w\s]*`)
+// Regexes for handling how to split messages into usable components.
+var wordSplitRegex = regexp.MustCompile(`\w\b-+|\S+`)
 var punctuationRegex = regexp.MustCompile(`^(\W+)|(\W+)$`)
 var capitalRegex = regexp.MustCompile(`\b[A-Z]+`)
 
@@ -87,7 +88,7 @@ type MessageMetadata struct {
 
 // New initializes message metadata struct from a string.
 func (m *MessageMetadata) New(message string) {
-	wordList := words.FindAllString(message, -1)
+	wordList := wordSplitRegex.FindAllString(message, -1)
 
 	m.size = uint32(len(message))
 	m.Words = make([]string, len(wordList))
