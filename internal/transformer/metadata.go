@@ -16,8 +16,88 @@ const (
 )
 
 var words = regexp.MustCompile(`\b[^\s-]+\b[^\w\s]*`)
-var punctuation = regexp.MustCompile(`[.,!?-]+\B`)
-var capital = regexp.MustCompile(`\b[A-Z]+`)
+var punctuationRegex = regexp.MustCompile(`^(\W+)|(\W+)$`)
+var capitalRegex = regexp.MustCompile(`\b[A-Z]+`)
+
+// WordMetadata is individual word metadata information.
+type WordMetadata struct {
+	Capitalization capitalization
+	PrePunc        string
+	PostPunc       string
+}
+
+// This method might look a little contrived with the number of "if" statements
+// checking if `meta` is nil. This is intentional. The point of this is to
+// reduce heap allocations as much as possible by only creating meta as needed.
+func createWordMetadata(word string) (*WordMetadata, string) {
+	var meta *WordMetadata
+
+	if idxs := punctuationRegex.FindAllStringIndex(word, 2); len(idxs) > 0 {
+		var pre, post string
+
+		if len(idxs) == 1 {
+			if idxs[0][0] == 0 {
+				pre = word[0:idxs[0][1]]
+			} else {
+				post = word[idxs[0][0]:idxs[0][1]]
+			}
+		} else {
+			pre = word[0:idxs[0][1]]
+			post = word[idxs[1][0]:idxs[1][1]]
+		}
+
+		meta = &WordMetadata{
+			PrePunc:  pre,
+			PostPunc: post,
+		}
+
+		word = punctuationRegex.ReplaceAllLiteralString(word, "")
+	}
+
+	switch len(capitalRegex.FindString(word)) {
+	case 0:
+		if meta != nil {
+			meta.Capitalization = noCapitalization
+		}
+	case 1:
+		if meta == nil {
+			meta = &WordMetadata{}
+		}
+
+		meta.Capitalization = firstCapitzlized
+		word = strings.ToLower(word)
+	default:
+		if meta == nil {
+			meta = &WordMetadata{}
+		}
+
+		meta.Capitalization = allCapitalized
+		word = strings.ToLower(word)
+	}
+
+	return meta, word
+}
+
+// MessageMetadata contains a list of words and their associated metadata.
+type MessageMetadata struct {
+	Words    []string
+	Metadata []*WordMetadata
+}
+
+// New initializes message metadata struct from a string.
+func (m *MessageMetadata) New(message string) {
+	wordList := words.FindAllString(message, -1)
+
+	m.Words = make([]string, len(wordList))
+	m.Metadata = make([]*WordMetadata, len(wordList))
+
+	for idx, word := range wordList {
+		meta, normalizedWord := createWordMetadata(word)
+
+		m.Words[idx] = normalizedWord
+		m.Metadata[idx] = meta
+	}
+}
 
 type wordMetadata struct {
 	Word           string
@@ -27,16 +107,16 @@ type wordMetadata struct {
 }
 
 func newWordMetadata(word string) *wordMetadata {
-	punctuationChars := punctuation.FindString(word)
+	punctuationChars := punctuationRegex.FindString(word)
 	hasPunctuation := false
 
 	if punctuationChars != "" {
 		hasPunctuation = true
-		word = punctuation.ReplaceAllLiteralString(word, "")
+		word = punctuationRegex.ReplaceAllLiteralString(word, "")
 	}
 
 	var capitalizationMode capitalization
-	switch len(capital.FindString(word)) {
+	switch len(capitalRegex.FindString(word)) {
 	case 0:
 		capitalizationMode = noCapitalization
 	case 1:
