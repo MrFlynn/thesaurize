@@ -43,15 +43,14 @@ func New(uri string) Database {
 // GetBestCandidateWord returns the best replacement synonym for supplied word.
 // The return order should be in the defined lexeme order in Lexeme.go.
 func (d Database) GetBestCandidateWord(word string) string {
-	r := make([]*redis.StringCmd, 0, 4)
-	results := &r
+	results := make([]*redis.StringCmd, 4)
 
 	_, err := d.client.TxPipelined(func(pipe redis.Pipeliner) error {
 		pipe.Expire(fmt.Sprintf("best_word_single_%s", word), 10*time.Second)
 
-		for _, l := range ordering {
+		for idx, l := range ordering {
 			res := pipe.SRandMember(fmt.Sprintf("%s:%s", l, word))
-			*results = append(*results, res)
+			results[idx] = res
 		}
 
 		return nil
@@ -62,7 +61,7 @@ func (d Database) GetBestCandidateWord(word string) string {
 		return word
 	}
 
-	for _, c := range *results {
+	for _, c := range results {
 		w, err := c.Result()
 		if err == nil {
 			return w
