@@ -1,4 +1,5 @@
 {
+    // Python configurations.
     "python.pythonPath": "~/.pyenv/versions/loader-tool/bin/python",
     "python.testing.pytestArgs": [
         "tools/loader-tool/tests",
@@ -7,7 +8,12 @@
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
+    // Golang settings.
     "go.useLanguageServer": true,
+    "go.testFlags": [
+        "-v",
+        "-race"
+    ],
     "[go]": {
         "editor.snippetSuggestions": "none",
         "editor.formatOnSave": true,
