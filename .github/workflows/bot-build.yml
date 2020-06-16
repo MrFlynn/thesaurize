@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  release:
+    types:
+      - published
+
+env:
+  PLATFORMS: linux/amd64,linux/arm64
+  IMAGE_NAME: mrflynn/thesaurize
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          TAGS="--tag ${IMAGE_NAME}:${VERSION} --tag ${IMAGE_NAME}:latest"
+
+          echo ::set-output name=build_args::--platform ${PLATFORMS} \
+            --build-arg VERSION=${VERSION} \
+            ${TAGS} \
+            --push .
+      - name: Login to hub.docker.com
+        uses: azure/docker-login@v1
+        with:
+          username: mrflynn
+          password: ${{ secrets.DOCKER_REGISTRY_KEY }}
+      - name: Setup Buildx
+        uses: crazy-max/ghaction-docker-buildx@v3.1.0
+      - name: Build image
+        run: |
+          docker buildx build ${{ steps.Setup.outputs.build_args }}
