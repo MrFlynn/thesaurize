@@ -1,4 +1,4 @@
-name: Loader-Tool CI
+name: Loader tests
 
 on:
   push:
@@ -7,32 +7,21 @@ on:
       - '.github/workflows/py-ci.yml'
 
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.8.0, 3.8.1]
         poetry-version: [1.0.0]
     steps:
-      - uses: actions/checkout@master
-      - name: "Install (Poetry: ${{ matrix.poetry-version }}, Python: ${{ matrix.python-version }})"
-        uses: MrFlynn/actions-poetry@19b0522
+      - uses: actions/checkout@v2
+      - name: Run tests and linter checks
+        uses: MrFlynn/actions-poetry@master
         with:
           python_version: ${{ matrix.python-version }}
           poetry_version: ${{ matrix.poetry-version }}
           working_directory: ./tools/loader-tool
-          args: install
-      - name: "Run unit tests (Poetry: ${{ matrix.poetry-version }}, Python: ${{ matrix.python-version }})"
-        uses: MrFlynn/actions-poetry@19b0522
-        with:
-          python_version: ${{ matrix.python-version }}
-          poetry_version: ${{ matrix.poetry-version }}
-          working_directory: ./tools/loader-tool
-          args: run python -m pytest -vv tests/
-      - name: "Validate formatting (Poetry: ${{ matrix.poetry-version }}, Python: ${{ matrix.python-version }})"
-        uses: MrFlynn/actions-poetry@19b0522
-        with:
-          python_version: ${{ matrix.python-version }}
-          poetry_version: ${{ matrix.poetry-version }}
-          working_directory: ./tools/loader-tool
-          args: run python -m black --check .
+          args:
+            - install
+            - poetry run python -m pytest -vv tests/
+            - poetry run python -m black --check .
