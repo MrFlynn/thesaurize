@@ -1,19 +1,31 @@
-FROM golang:1.11-alpine3.8
-LABEL MAINTAINER="Nick Pleatsikas <nick@pleasikas.me>"
+FROM golang:1.14 as build
 
-# For some reason this isn't set by default.
-ENV GOPATH=/go
+# Set at compile time.
+ARG VERSION
 
-# Repository URL.
-ENV REPO_URL=github.com/MrFlynn/thesaurize-bot
+# Standard environment variables.
+ENV CGO_ENABLED=0
+ENV GOOS=linux
 
-# Install git so remote libraries can be installed.
-RUN apk update && \
-    apk add git 
+# Create a user to copy over to target image.
+RUN useradd -u 10000 bot
 
-# Download and install app from remote.
-RUN go get ${REPO_URL} && \
-    go install ${REPO_URL}
+WORKDIR /go/src
+COPY . .
 
-# Run the app.
-CMD thesaurize-bot
+# Build the executable.
+RUN go build -ldflags="-s -w -X 'main.Version=$VERSION'" -o bot ./cmd/bot
+
+# Target container.
+FROM scratch
+
+# Want SSL certificates and users.
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=build /etc/passwd /etc/passwd
+
+COPY --from=build /go/src/bot /bin/bot
+
+USER bot
+
+ENTRYPOINT [ "/bin/bot" ]
+CMD [ "--help" ]

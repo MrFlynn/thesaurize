@@ -1,4 +1,23 @@
-thesaurus-bot
-*.md
+# Git* related files.
+.git/
+.github/
+.gitignore
+
+# Ignore tools directory.
+tools/
+
+# IDE configurations.
+.vscode/
+.editorconfig
+
+# Human-readable files.
 LICENSE
+README.md
+
+# Docker files.
 Dockerfile
+.dockerignore
+
+# Other files and directories.
+.pytest_cache/
+Makefile

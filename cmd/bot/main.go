@@ -10,7 +10,7 @@ import (
 func main() {
 	app := &cli.App{
 		Name:    "thesaurize",
-		Version: "0.1.0",
+		Version: Version,
 		Usage:   "A Discord bot to make statements sound ridiculous.",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -28,7 +28,7 @@ func main() {
 		},
 		Action: discord.Run,
 		Authors: []*cli.Author{
-			&cli.Author{
+			{
 				Name:  "Nick Pleatsikas",
 				Email: "nick@pleatsikas.me",
 			},
