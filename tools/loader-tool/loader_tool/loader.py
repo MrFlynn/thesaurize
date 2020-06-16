@@ -120,4 +120,10 @@ class Loader:
             await self.push_redis(push_remaining=self._terminate)
 
         log.debug("Database finished loading.")
+
+        # Send command to `status` pubsub channel that data has been loaded.
+        await self._redis.publish("status", "ready")
+        log.debug("Pubsub channel `status` has been updated with `ready` message.")
+
         self._redis.close()
+        print("")  # This is to prevent weird unescaped characters from being printed.
