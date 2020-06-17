@@ -21,6 +21,8 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
       - name: Install depenencies
         run: |
+          source $HOME/.poetry/env
+
           cd ./tools/loader-tool
           poetry install
       - name: Run unit tests and linter checks
