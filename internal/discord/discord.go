@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"reflect"
 	"runtime"
+	"strings"
 
 	"github.com/MrFlynn/thesaurize-bot/internal/database"
 	"github.com/bwmarrin/discordgo"
@@ -76,6 +77,11 @@ func (b *bot) run() error {
 	log.Println("Bot shutting down. Goodbye...")
 
 	return err
+}
+
+func trimCommand(s *discordgo.Session, m *discordgo.Message) string {
+	msg, _ := m.ContentWithMoreMentionsReplaced(s)
+	return strings.TrimPrefix(msg, "!thesaurize ")
 }
 
 // Run creates a bot and runs it. This provides the primary entrypoint into the bot. This function

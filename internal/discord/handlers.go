@@ -1,6 +1,7 @@
 package discord
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/MrFlynn/thesaurize-bot/internal/database"
@@ -9,23 +10,51 @@ import (
 )
 
 func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate, d database.Database) error {
+	var err error
+
 	if strings.HasPrefix(m.Content, "!thesaurize") {
-		message := discordgo.MessageSend{}
+		outgoingMessage := discordgo.MessageSend{}
+		content := trimCommand(s, m.Message)
 
-		if m.Content == "!thesaurize help" {
+		if content == "help" {
 			// Display help dialog.
-			message.Embed = &helpEmbed
-		} else {
-			content := m.ContentWithMentionsReplaced()
+			outgoingMessage.Embed = &helpEmbed
+		} else if len(m.Mentions) > 0 && !m.MentionEveryone {
+			user := m.Mentions[0]
+			content, err = mentionParser(s, user, m.ChannelID)
 
-			message.Content = transformer.Transform(
-				content[12:],
-				d,
-			)
+			if err != nil {
+				goto terminate
+			}
+		} else if len(content) == 0 {
+			goto terminate
 		}
 
-		s.ChannelMessageSendComplex(m.ChannelID, &message)
+		if len(content) > 0 {
+			outgoingMessage.Content = transformer.Transform(content, d)
+			_, err = s.ChannelMessageSendComplex(m.ChannelID, &outgoingMessage)
+		}
 	}
 
-	return nil
+terminate:
+	return err
+}
+
+func mentionParser(s *discordgo.Session, u *discordgo.User, channelID string) (string, error) {
+	messages, err := s.ChannelMessages(channelID, 20, "", "", "")
+	if err != nil {
+		return "", fmt.Errorf(
+			"Could not accesses messages in channel:%s, err:%s",
+			channelID,
+			err,
+		)
+	}
+
+	for _, msg := range messages {
+		if msg.Author.ID == u.ID {
+			return trimCommand(s, msg), nil
+		}
+	}
+
+	return "", nil
 }
