@@ -19,7 +19,7 @@ jobs:
       - name: Install Poetry
         run: |
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-      - name: Install depenencies
+      - name: Install dependencies
         run: |
           source $HOME/.poetry/env
 
@@ -27,5 +27,7 @@ jobs:
           poetry install
       - name: Run unit tests and linter checks
         run: |
-          python -m pytest -vv tests/
-          python -m black --check .
+          source $HOME/.poetry/env
+
+          poetry run python -m pytest -vv tests/
+          poetry run python -m black --check .
