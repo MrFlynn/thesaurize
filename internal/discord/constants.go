@@ -13,11 +13,11 @@ var helpEmbed = discordgo.MessageEmbed{
 		Text: "Thesaurize Bot by MrFlynn",
 	},
 	Fields: []*discordgo.MessageEmbedField{
-		&discordgo.MessageEmbedField{
+		{
 			Name:  "But why?",
 			Value: "Because it's amusing, that's why.",
 		},
-		&discordgo.MessageEmbedField{
+		{
 			Name:  "Commands",
 			Value: "Just enter your text into the command `!thesaurize <text>` to use this bot",
 		},

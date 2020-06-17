@@ -19,7 +19,7 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate, d database
 			content := m.ContentWithMentionsReplaced()
 
 			message.Content = transformer.Transform(
-				content[12:len(content)],
+				content[12:],
 				d,
 			)
 		}
