@@ -71,3 +71,23 @@ func (d Database) GetBestCandidateWord(word string) string {
 	// Fallback. Only return if nothing was found.
 	return word
 }
+
+// WaitForReady waits for `ready` status message in `status` pubsub channel.
+func (d Database) WaitForReady(timeout int) error {
+	pubsub := d.client.Subscribe("status")
+	defer pubsub.Close()
+
+	log.Printf("Waiting for ready status on channel `status` for %ds", timeout)
+
+	ch := pubsub.Channel()
+	for {
+		select {
+		case msg := <-ch:
+			if msg.Payload == "ready" {
+				return nil
+			}
+		case <-time.After(time.Duration(timeout) * time.Second):
+			return fmt.Errorf("Channel `status` timed out after %ds", timeout)
+		}
+	}
+}

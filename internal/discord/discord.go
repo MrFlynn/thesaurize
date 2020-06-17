@@ -49,7 +49,15 @@ func (b *bot) registerHandler(handler func(s *discordgo.Session, m *discordgo.Me
 }
 
 func (b *bot) run() error {
-	err := b.serviceHandler.Open()
+	var err error
+
+	err = b.database.WaitForReady(30)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	err = b.serviceHandler.Open()
 	if err != nil {
 		log.Println("Could not open connection to discord. Exiting...")
 		return err
@@ -67,7 +75,7 @@ func (b *bot) run() error {
 	fmt.Printf("\n")
 	log.Println("Bot shutting down. Goodbye...")
 
-	return nil
+	return err
 }
 
 // Run creates a bot and runs it. This provides the primary entrypoint into the bot. This function
