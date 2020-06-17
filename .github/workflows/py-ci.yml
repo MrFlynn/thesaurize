@@ -9,15 +9,12 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.8.0', '3.8.3']
     steps:
       - uses: actions/checkout@v2
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.8.3'
           architecture: x64
       - name: Install Poetry
         run: |
@@ -25,7 +22,7 @@ jobs:
       - name: Install depenencies
         run: |
           cd ./tools/loader-tool
-          python -m poetry install
+          poetry install
       - name: Run unit tests and linter checks
         run: |
           python -m pytest -vv tests/
