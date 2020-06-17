@@ -7,21 +7,26 @@ on:
       - '.github/workflows/py-ci.yml'
 
 jobs:
-  test:
+  ci:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8.0, 3.8.1]
-        poetry-version: [1.0.0]
+        python-version: ['3.8.0', '3.8.3']
     steps:
       - uses: actions/checkout@v2
-      - name: Run tests and linter checks
-        uses: MrFlynn/actions-poetry@master
+      - name: Install Python
+        uses: actions/setup-python@v2
         with:
-          python_version: ${{ matrix.python-version }}
-          poetry_version: ${{ matrix.poetry-version }}
-          working_directory: ./tools/loader-tool
-          args:
-            - install
-            - poetry run python -m pytest -vv tests/
-            - poetry run python -m black --check .
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      - name: Install Poetry
+        run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+      - name: Install depenencies
+        run: |
+          cd ./tools/loader-tool
+          python -m poetry install
+      - name: Run unit tests and linter checks
+        run: |
+          python -m pytest -vv tests/
+          python -m black --check .
