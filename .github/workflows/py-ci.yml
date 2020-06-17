@@ -22,12 +22,13 @@ jobs:
       - name: Install dependencies
         run: |
           source $HOME/.poetry/env
-
           cd ./tools/loader-tool
+          
           poetry install
       - name: Run unit tests and linter checks
         run: |
           source $HOME/.poetry/env
+          cd ./tools/loader-tool
 
           poetry run python -m pytest -vv tests/
           poetry run python -m black --check .
