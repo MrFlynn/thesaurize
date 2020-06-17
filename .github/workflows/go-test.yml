@@ -3,9 +3,11 @@ name: Tests
 on:
   push:
     paths:
-      - '.github/workflows/go-test.yml'
-      - 'cmd/**/*.go'
-      - 'internal/**/*.go'
+      - .github/workflows/go-test.yml
+      - cmd/**/*.go
+      - internal/**/*.go
+      - go.mod
+      - go.sum
 
 jobs:
   test:
