@@ -17,10 +17,18 @@ jobs:
       - name: Setup
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
+
           TAGS="--tag ${IMAGE_NAME}:${VERSION} --tag ${IMAGE_NAME}:latest"
+          BUILD_ARGS="--build-arg VERSION=${VERSION} --build-arg COMMIT=${GITHUB_SHA}"
+          LABELS="--label=org.opencontainers.image.created=$(date -u --rfc-3339=date) \
+            --label=org.opencontainers.image.name=thesaurize \
+            --label=org.opencontainers.image.version=${VERSION} \
+            --label=org.opencontainers.image.licenses=MIT \
+            --label=org.opencontainers.image.revision=${GITHUB_SHA}"
 
           echo ::set-output name=build_args::--platform ${PLATFORMS} \
-            --build-arg VERSION=${VERSION} \
+            ${BUILD_ARGS} \
+            ${LABELS} \
             ${TAGS} \
             --push .
       - name: Login to hub.docker.com

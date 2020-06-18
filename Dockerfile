@@ -2,6 +2,7 @@ FROM golang:1.14 as build
 
 # Set at compile time.
 ARG VERSION
+ARG COMMIT
 
 # Standard environment variables.
 ENV CGO_ENABLED=0
@@ -14,7 +15,7 @@ WORKDIR /go/src
 COPY . .
 
 # Build the executable.
-RUN go build -ldflags="-s -w -X 'main.Version=$VERSION'" -o bot ./cmd/bot
+RUN go build -ldflags="-s -w -X 'main.Version=$VERSION' -X 'main.Version=$COMMIT'" -o bot ./cmd/bot
 
 # Target container.
 FROM scratch
