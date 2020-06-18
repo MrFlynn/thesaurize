@@ -74,6 +74,11 @@ func (d Database) GetBestCandidateWord(word string) string {
 
 // WaitForReady waits for `ready` status message in `status` pubsub channel.
 func (d Database) WaitForReady(timeout int) error {
+	if timeout == 0 {
+		log.Println("Skipping database check...")
+		return nil
+	}
+
 	pubsub := d.client.Subscribe("status")
 	defer pubsub.Close()
 

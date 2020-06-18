@@ -49,10 +49,10 @@ func (b *bot) registerHandler(handler func(s *discordgo.Session, m *discordgo.Me
 	})
 }
 
-func (b *bot) run() error {
+func (b *bot) run(ctx *cli.Context) error {
 	var err error
 
-	err = b.database.WaitForReady(30)
+	err = b.database.WaitForReady(ctx.Int("timeout"))
 	if err != nil {
 		log.Println(err)
 		return err
@@ -96,5 +96,5 @@ func Run(ctx *cli.Context) error {
 
 	bot.registerHandler(commandHandler)
 
-	return bot.run()
+	return bot.run(ctx)
 }
