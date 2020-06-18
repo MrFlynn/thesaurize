@@ -16,3 +16,6 @@
 
 # Ignore MacOS files.
 .DS_Store
+
+# Output directories
+/dist

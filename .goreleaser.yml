@@ -1,0 +1,36 @@
+project_name: thesaurize
+before:
+  hooks:
+    - go mod download
+archives:
+  - id: "default"
+    builds:
+      - default
+    files:
+      - LICENSE
+      - README.md
+      - tools/**/*
+builds:
+- id: "default"
+  binary: "thesaurize"
+  dir: ./cmd/bot
+  env:
+    - CGO_ENABLED=0
+  goos:
+    - linux
+  goarch:
+    - amd64
+    - arm64
+  goarm:
+    - 8
+checksum:
+  name_template: "{{ .ProjectName}}-{{ .Version }}.shasum"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - typo
+      - (?i)workflow
+      - (?i)ci
+      - (?i)test
+      - (?i)config(uration)?
