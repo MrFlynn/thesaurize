@@ -1,5 +1,8 @@
 package main
 
-// Version is the version string for the application.
-// This is set at build time.
-var Version string
+// Build-time generated variables
+var (
+	version string
+	commit  string
+	date    string
+)
