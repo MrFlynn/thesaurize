@@ -126,4 +126,5 @@ class Loader:
         log.debug("Pubsub channel `status` has been updated with `ready` message.")
 
         self._redis.close()
-        print("")  # This is to prevent weird unescaped characters from being printed.
+
+        self._progress.finish()
