@@ -4,7 +4,8 @@ version = "0.1.0"
 description = "Loads encoded thesaurus into Redis datastore"
 authors = ["Nick Pleatsikas <nick@pleatsikas.me>"]
 readme = "README.md"
-repository = "https://github.com/MrFlynn/thesaurize-bot"
+repository = "https://github.com/MrFlynn/thesaurize-bot/tools/loader-tool"
+homepage = "https://github.com/MrFlynn/thesaurize-bot/tools/loader-tool"
 classifiers = [
     "Topic :: Utilities",
     "Topic :: Database",
