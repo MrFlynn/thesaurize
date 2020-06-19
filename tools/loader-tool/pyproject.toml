@@ -1,8 +1,15 @@
 [tool.poetry]
-name = "loader-tool"
+name = "thesaurize-loader"
 version = "0.1.0"
 description = "Loads encoded thesaurus into Redis datastore"
 authors = ["Nick Pleatsikas <nick@pleatsikas.me>"]
+readme = "README.md"
+repository = "https://github.com/MrFlynn/thesaurize-bot"
+classifiers = [
+    "Topic :: Utilities",
+    "Topic :: Database",
+    "Programming Language :: Python :: 3.8"
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"

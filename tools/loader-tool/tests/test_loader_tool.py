@@ -1,7 +1,7 @@
 import argparse
 import pytest
 
-from loader_tool import __version__, Loader, TX_BUFFER_TEMPLATE
+from thesaurize_loader import __version__, Loader, TX_BUFFER_TEMPLATE
 from pathlib import Path
 
 

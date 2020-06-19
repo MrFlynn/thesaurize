@@ -3,7 +3,7 @@ import argparse
 import logging
 import pathlib
 
-from loader_tool import Loader
+from thesaurize_loader import Loader
 
 
 def get_args() -> argparse.Namespace:
