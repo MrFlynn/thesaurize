@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "thesaurize-loader"
-version = "0.1.1"
+version = "0.2.0"
 description = "Loads encoded thesaurus into Redis datastore"
 authors = ["Nick Pleatsikas <nick@pleatsikas.me>"]
 readme = "README.md"
@@ -16,6 +16,7 @@ classifiers = [
 python = "^3.8"
 aioredis = "^1.3.1"
 progress = "^1.5"
+requests = "^2.24.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

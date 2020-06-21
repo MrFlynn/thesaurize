@@ -3,7 +3,10 @@ import argparse
 import codecs
 import logging
 import os
+import re
 import typing
+
+from .protocols import Protocol, ProtocolFactory, FileProtocol, HTTPProtocol
 
 from copy import deepcopy
 from progress.bar import Bar
@@ -69,36 +72,17 @@ class Loader:
             await pipeline.execute()
             self._tx_buffer = deepcopy(TX_BUFFER_TEMPLATE)
 
-    def read(self) -> typing.Iterator[str]:
-        if not self.args.file.exists() or not self.args.file.is_file():
-            log.error(f"File {self.args.file.as_posix} does not exists or is not a file")
-            return
-
-        with self.args.file.open("rb") as f:
-            # Get the size of the file.
-            file_size = os.fstat(f.fileno()).st_size
-            self._progress.max = file_size
-
-            # Create buffered reader.
-            reader = self._encoding.streamreader(f)
-
-            size = 0
-            while line := reader.readline(keepends=False):
-                # Keep reading lines until current position exceeds file size.
-                if size >= file_size:
-                    break
-
-                self._progress.next(n=(f.tell() - self._progress.index))
-
-                size += len(line.encode()) + 1  # Account for line endings.
-                yield line
-
-    def read_word_metadata(self, reader: typing.Iterator[str]) -> None:
+    def read_word_metadata(self, reader: typing.Iterator[typing.Tuple[int, str]]) -> None:
         try:
-            word, num_sections = next(reader).split("|")
+            inc, header_line = next(reader)
+            self._progress.next(n=inc)
 
+            word, num_sections = header_line.split("|")
             for _ in range(int(num_sections)):
-                items = next(reader).split("|")
+                inc, synonym_line = next(reader)
+                self._progress.next(n=inc)
+
+                items = synonym_line.split("|")
                 section = items[0][1:-1]  # Remove parentheses.
 
                 self.push_to_buffer(word, section, *items[1:])
@@ -106,25 +90,53 @@ class Loader:
             self._terminate = True
 
     async def run(self) -> None:
-        self._redis = await aioredis.create_redis(self.args.connection)
-        log.debug("Database connected.")
+        exit_code = 0
 
-        # Check if first line of encoding matches first line of file.
-        reader = self.read()
-        if (encoding := next(reader).lower()) != self.encoding:
-            log.error(f"Encoding mismatch! Expected {self.encoding}, got {encoding}.")
-            return
+        try:
+            self._redis = await aioredis.create_redis(self.args.connection)
+            log.debug("Database connected.")
 
-        while not self._terminate:
-            self.read_word_metadata(reader)
-            await self.push_redis(push_remaining=self._terminate)
+            # Search for valid protocol handler.
+            proto_handler: Protocol
+            matcher = re.compile("^[A-z]+://")
 
-        log.debug("Database finished loading.")
+            if (proto_string := matcher.search(self.args.file)) != None:
+                proto_handler = ProtocolFactory.create(proto_string.group(0))
 
-        # Send command to `status` pubsub channel that data has been loaded.
-        await self._redis.publish("status", "ready")
-        log.debug("Pubsub channel `status` has been updated with `ready` message.")
+                if isinstance(proto_handler, FileProtocol):
+                    proto_handler = proto_handler(
+                        matcher.sub("", self.args.file), self._encoding, log
+                    )
+                else:
+                    proto_handler = proto_handler(self.args.file, self._encoding, log)
+            else:
+                raise RuntimeError("No protocol specified. You must specify one.")
 
-        self._redis.close()
+            self._progress.max = proto_handler.size
 
-        self._progress.finish()
+            # Initializer reader and validate encoding.
+            reader = iter(proto_handler)
+
+            inc, encoding_header = next(reader)
+            if (encoding := encoding_header.lower()) != self.encoding:
+                RuntimeError(f"Encoding mismatch! Expected {self.encoding}, got {encoding}.")
+
+            self._progress.next(n=inc)
+
+            while not self._terminate:
+                self.read_word_metadata(reader)
+                await self.push_redis(push_remaining=self._terminate)
+
+            log.debug("Database finished loading.")
+
+            # Send command to `status` pubsub channel that data has been loaded.
+            await self._redis.publish("status", "ready")
+            log.debug("Pubsub channel `status` has been updated with `ready` message.")
+        except Exception as e:
+            log.error(e)
+            exit_code = 1
+        finally:
+            self._redis.close()
+            self._progress.finish()
+
+            exit(exit_code)

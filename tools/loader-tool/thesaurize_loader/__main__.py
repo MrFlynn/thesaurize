@@ -8,15 +8,20 @@ from thesaurize_loader import Loader
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        prog="loader", description="Loads thesaurus data file into Redis datastore."
+        prog="loader",
+        description="Loads thesaurus data file into Redis datastore.",
+        formatter_class=lambda prog: argparse.HelpFormatter(prog, width=100),
     )
 
     parser.add_argument(
         "--file",
         "-f",
         required=True,
-        type=pathlib.Path,
-        help="Path to .dat file containing thesaurus.",
+        type=str,
+        help="""
+Location of thesaurus data file. Must prepend path with protocol. Supported
+protocols include file:// and http(s)://. Currently only http(s):// protocol
+supports remote zip files.""",
     )
     parser.add_argument(
         "--connection", "-c", required=True, type=str, help="Redis URI to connect to."
@@ -31,7 +36,7 @@ def setup_logging() -> None:
     log.setLevel(logging.INFO)
 
     handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s:%(message)s"))
+    handler.setFormatter(logging.Formatter("\n%(asctime)s %(levelname)s:%(message)s"))
 
     log.addHandler(handler)
 

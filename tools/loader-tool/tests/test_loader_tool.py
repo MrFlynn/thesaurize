@@ -1,8 +1,12 @@
 import argparse
+import codecs
+import logging
 import pytest
+import requests
 
-from thesaurize_loader import __version__, Loader, TX_BUFFER_TEMPLATE
 from pathlib import Path
+from thesaurize_loader import __version__, Loader, FileProtocol, HTTPProtocol, TX_BUFFER_TEMPLATE
+from zipfile import ZipFile
 
 
 # Default and utilities.
@@ -13,18 +17,31 @@ DATAFILE_CONTENT = """hello|2
 """
 
 
+class RequestMock:
+    def __init__(self, content: Path):
+        with content.open("rb") as f:
+            self.content = f.read()
+
+        self.ok = True
+
+
 @pytest.fixture(scope="session")
 def create_data_file(tmpdir_factory):
-    filename = Path(tmpdir_factory.mktemp("data").join("data.dat"))
+    data_file = Path(tmpdir_factory.mktemp("data").join("data.dat"))
+    zip_file = Path(tmpdir_factory.mktemp("archive").join("archive.zip"))
 
-    with filename.open("w") as f:
+    with data_file.open("w") as f:
         f.write(DATAFILE_CONTENT)
 
-    return filename
+    zipper = ZipFile(zip_file, "w")
+    zipper.write(data_file)
+    zipper.close()
+
+    return data_file, zip_file
 
 
 def test_version():
-    assert __version__ == "0.1.0"
+    assert __version__ == "0.2.0"
 
 
 def test_default_encoding():
@@ -102,18 +119,10 @@ def test_buffer_push_to_existing_key():
     }
 
 
-def test_reader(create_data_file):
-    args = argparse.Namespace(encoding=None, file=create_data_file)
-    l = Loader(args)
-
-    assert list(l.read()) == ["hello|2", "(noun)|greetings", "(verb)|hullo"]
-
-
 def test_metadata_reader(create_data_file):
-    args = argparse.Namespace(encoding=None, file=create_data_file)
-    l = Loader(args)
+    l = Loader(BASIC_ARGS)
 
-    reader = l.read()
+    reader = iter(FileProtocol(create_data_file[0], l._encoding, None))
     l.read_word_metadata(reader)
 
     full, buffer = l.buffer
@@ -125,3 +134,61 @@ def test_metadata_reader(create_data_file):
         "adj": {},
         "adv": {},
     }
+
+
+def test_file_protocol_contains():
+    assert FileProtocol.supports_protocol("file://")
+
+
+def test_file_protocol_size(create_data_file):
+    proto = FileProtocol(create_data_file[0], None, None)
+
+    assert proto.size == 38
+
+
+def test_file_protocol(create_data_file):
+    proto = FileProtocol(create_data_file[0], codecs.lookup("ISO8859-1"), None)
+
+    iterator = iter(proto)
+    assert next(iterator) == (8, "hello|2")
+    assert next(iterator) == (17, "(noun)|greetings")
+    assert next(iterator) == (13, "(verb)|hullo")
+
+    with pytest.raises(StopIteration):
+        next(iterator)
+
+
+def test_http_protocol_contains():
+    assert HTTPProtocol.supports_protocol("http://")
+    assert HTTPProtocol.supports_protocol("https://")
+
+
+def test_http_protocol_size(create_data_file, monkeypatch):
+    log = logging.getLogger("test")
+
+    def mockrequests(*args, **kwargs):
+        return RequestMock(create_data_file[1])
+
+    monkeypatch.setattr(requests, "get", mockrequests)
+
+    proto = HTTPProtocol("", codecs.lookup("ISO8859-1"), log)
+    assert proto.size == 38
+
+
+def test_http_protocol(create_data_file, monkeypatch):
+    log = logging.getLogger("test")
+
+    def mockrequests(*args, **kwargs):
+        return RequestMock(create_data_file[1])
+
+    monkeypatch.setattr(requests, "get", mockrequests)
+
+    proto = HTTPProtocol("", codecs.lookup("ISO8859-1"), log)
+
+    iterator = iter(proto)
+    assert next(iterator) == (8, "hello|2")
+    assert next(iterator) == (17, "(noun)|greetings")
+    assert next(iterator) == (13, "(verb)|hullo")
+
+    with pytest.raises(StopIteration):
+        next(iterator)
