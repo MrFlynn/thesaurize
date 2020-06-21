@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "thesaurize-loader"
-version = "0.1.0"
+version = "0.1.1"
 description = "Loads encoded thesaurus into Redis datastore"
 authors = ["Nick Pleatsikas <nick@pleatsikas.me>"]
 readme = "README.md"
@@ -22,7 +22,7 @@ pytest = "^5.2"
 black = "^19.10b0"
 
 [tool.poetry.scripts]
-loader = 'loader_tool.__main__:main'
+thesaurize-loader = 'thesaurize_loader.__main__:main'
 
 [tool.black]
 line-length = 100
