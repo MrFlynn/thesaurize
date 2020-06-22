@@ -9,14 +9,22 @@ You can read more and download the OpenOffice thesaurus
 [here](https://www.openoffice.org/lingucomponent/thesaurus.html).
 
 ## Usage
-Download the thesaurus archive linked above and extract it. You also need to
-have a running instance of Redis on your system. Then use the following 
-commands to insert data into a Redis instance.
+You will need to install this utility with pip(x) and have Redis installed and
+running. Then run the utility with the following arguments.
 
 ```bash
-$ pip install thesaurize-loader
-$ thesaurize-loader --file=/path/to/thesaurus.dat --connection=redis://localhost:6379
+$ pipx install thesaurize-loader
+$ thesaurize-loader \
+    --file=https://www.openoffice.org/lingucomponent/MyThes-1.zip \
+    --connection=redis://localhost:6379
+```
+
+Alternatively, you can download the thesaurus archive linked above and extract 
+it. Then run the following command:
+
+```bash
+$ thesaurize-loader --file=file:///path/to/thesaurus.dat --connection=redis://localhost:6379
 ```
 
 ## License
-[MIT](../../LICENSE)
+[MIT](https://choosealicense.com/licenses/mit/)

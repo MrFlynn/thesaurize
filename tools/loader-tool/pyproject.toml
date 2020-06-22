@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "thesaurize-loader"
-version = "0.2.0"
+version = "0.2.1"
 description = "Loads encoded thesaurus into Redis datastore"
 authors = ["Nick Pleatsikas <nick@pleatsikas.me>"]
 readme = "README.md"
