@@ -25,5 +25,10 @@
         "usePlaceholders": true,
         "completeUnimported": true,
         "deepCompletion": true,
+    },
+    "yaml.completion": true,
+    "yaml.format.enable": true,
+    "yaml.schemas": {
+        "kubernetes": "deployments/*.yaml"
     }
 }
