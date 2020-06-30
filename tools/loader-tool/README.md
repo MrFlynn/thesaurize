@@ -2,7 +2,7 @@
 This utility transforms [OpenOffice](https://openoffice.org) thesaurus data
 files (based on Princeton's WordNet) into Redis protocol data streams. This
 utility essentially mass-inserts thesaurus data into a Redis instance for use
-with the [thesaurize bot](https://github.com/MrFlynn/thesaurize-bot) for
+with the [thesaurize bot](https://github.com/MrFlynn/thesaurize) for
 Discord.
 
 You can read more and download the OpenOffice thesaurus

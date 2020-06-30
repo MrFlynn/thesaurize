@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/MrFlynn/thesaurize-bot/internal/database"
-	"github.com/MrFlynn/thesaurize-bot/internal/transformer"
+	"github.com/MrFlynn/thesaurize/internal/database"
+	"github.com/MrFlynn/thesaurize/internal/transformer"
 	"github.com/bwmarrin/discordgo"
 )
 

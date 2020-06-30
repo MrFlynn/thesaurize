@@ -1,4 +1,4 @@
-module github.com/MrFlynn/thesaurize-bot
+module github.com/MrFlynn/thesaurize
 
 go 1.14
 

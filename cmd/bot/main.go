@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/MrFlynn/thesaurize-bot/internal/discord"
+	"github.com/MrFlynn/thesaurize/internal/discord"
 	"github.com/urfave/cli/v2"
 )
 

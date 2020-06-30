@@ -1,6 +1,6 @@
 package transformer
 
-import "github.com/MrFlynn/thesaurize-bot/internal/database"
+import "github.com/MrFlynn/thesaurize/internal/database"
 
 // Transform takes a message and runs each word through the thesaurus.
 func Transform(message string, db database.Database) string {

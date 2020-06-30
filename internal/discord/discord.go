@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/MrFlynn/thesaurize-bot/internal/database"
+	"github.com/MrFlynn/thesaurize/internal/database"
 	"github.com/bwmarrin/discordgo"
 	"github.com/urfave/cli/v2"
 )
