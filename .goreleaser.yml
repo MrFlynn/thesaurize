@@ -34,3 +34,4 @@ changelog:
       - (?i)ci
       - (?i)test
       - (?i)config(uration)?
+      - tools/*
