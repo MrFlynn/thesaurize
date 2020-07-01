@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thesaurize-deployment
+  labels:
+    app: thesaurize
+spec:
+  selector:
+    matchLabels:
+      app: thesaurize
+  template:
+    metadata:
+      labels:
+        app: thesaurize
+    spec:
+      containers:
+      - name: thesaurize
+        image: mrflynn/thesaurize
+        args:
+        - run
+        - "--token=$(TOKEN)"
+        - "--datastore=redis://$(REDIS_URL):6379"
+        - "--timeout=0"
+        env:
+        - name: TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: discord-token
+              key: discord-token
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: redis_url
+        resources:
+          limits:
+            memory: "50Mi"
+            cpu: "500m"

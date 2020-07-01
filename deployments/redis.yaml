@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-statefulset
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  serviceName: redis
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        args:
+        - "--appendonly"
+        - "yes"
+        - "--save"
+        - "60"
+        - "1"
+        ports:
+          - containerPort: 6379
+        volumeMounts:
+          - mountPath: /data
+            name: datastore
+        resources:
+          limits:
+            memory: "250Mi"
+            cpu: "500m"
+      volumes:
+      - name: datastore
+        hostPath:
+          path: /data
+          type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: redis
+  ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
