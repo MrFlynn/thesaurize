@@ -22,6 +22,7 @@ builds:
     - amd64
     - arm64
   goarm:
+    - 7
     - 8
 checksum:
   name_template: "{{ .ProjectName}}-{{ .Version }}.shasum"
