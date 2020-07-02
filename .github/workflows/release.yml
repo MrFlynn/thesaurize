@@ -34,10 +34,13 @@ jobs:
         id: setup
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
+          DATE=$(date -u --rfc-3339=date)
 
           TAGS="--tag ${IMAGE_NAME}:${VERSION} --tag ${IMAGE_NAME}:latest"
-          BUILD_ARGS="--build-arg VERSION=${VERSION} --build-arg COMMIT=${GITHUB_SHA}"
-          LABELS="--label=org.opencontainers.image.created=$(date -u --rfc-3339=date) \
+          BUILD_ARGS="--build-arg VERSION=${VERSION} \
+            --build-arg COMMIT=${GITHUB_SHA} \
+            --build-arg DATE=${DATE}"
+          LABELS="--label=org.opencontainers.image.created=${DATE} \
             --label=org.opencontainers.image.name=thesaurize \
             --label=org.opencontainers.image.version=${VERSION} \
             --label=org.opencontainers.image.licenses=MIT \
