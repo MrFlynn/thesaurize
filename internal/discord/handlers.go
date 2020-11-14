@@ -9,6 +9,31 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+func errorHandler(s *discordgo.Session, err error, channelID string) {
+	msg := "Sorry. Something went wrong with the bot. Please try again later."
+	if botErr, ok := err.(botError); ok {
+		if botErr.t == errorUser {
+			// Only take original error message if error is classified as a user error.
+			msg = botErr.Error()
+		}
+	}
+
+	s.ChannelMessageSendEmbed(channelID, &discordgo.MessageEmbed{
+		Title:       ":x: Thesaurize Error :x:",
+		Description: msg,
+		Type:        "rich",
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: "Thesaurize Bot by MrFlynn",
+		},
+		Fields: []*discordgo.MessageEmbedField{
+			{
+				Name:  "Report a Bug",
+				Value: "Submit an issue [here](https://github.com/MrFlynn/thesaurize/issues/new).",
+			},
+		},
+	})
+}
+
 func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate, d database.Database) error {
 	var err error
 
@@ -57,5 +82,11 @@ func mentionParser(s *discordgo.Session, u *discordgo.User, channelID string) (s
 		}
 	}
 
-	return "", nil
+	return "", botError{
+		why: fmt.Errorf(
+			"Sorry, but I couldn't find the last message from %s. Is it be more than 100 messages ago?",
+			u.Username,
+		),
+		t: errorUser,
+	}
 }

@@ -24,6 +24,24 @@ type bot struct {
 	serviceHandler *discordgo.Session
 }
 
+// Error handling for bot. Stores information on whether to expose error
+// messages to end user.
+type errorType int
+
+const (
+	errorInternal errorType = iota
+	errorUser
+)
+
+type botError struct {
+	why error
+	t   errorType
+}
+
+func (e botError) Error() string {
+	return e.why.Error()
+}
+
 func new(ctx *cli.Context) (bot, error) {
 	service, err := discordgo.New("Bot " + ctx.String("token"))
 	if err != nil {
