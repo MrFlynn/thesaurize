@@ -16,7 +16,7 @@ WORKDIR /go/src
 COPY . .
 
 # Build the executable.
-RUN go build -ldflags="-s -w -X 'main.version=${VERSION}' -X 'main.commit=${COMMIT}' -X 'main.date=${DATE}'" -o bot ./cmd/bot
+RUN go build -ldflags="-s -w -X 'main.version=${VERSION}' -X 'main.commit=${COMMIT}' -X 'main.date=${DATE}' -X 'main.skipCommonWords=true'" -o bot ./cmd/bot
 
 # Target container.
 FROM scratch

@@ -14,6 +14,9 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// Set if common words should be skipped.
+var skipCommonWords bool
+
 // bot type provides methods for communicating with discord.
 type bot struct {
 	key            string
@@ -85,8 +88,11 @@ func trimCommand(s *discordgo.Session, m *discordgo.Message) string {
 }
 
 // Run creates a bot and runs it. This provides the primary entrypoint into the bot. This function
-// is called directly by the main function in the main package.
-func Run(ctx *cli.Context) error {
+// is called directly by the main function in the main package. The `skip` variable instructs the
+// bot to skip common words in translation.
+func Run(ctx *cli.Context, skip bool) error {
+	skipCommonWords = skip
+
 	bot, err := new(ctx)
 
 	if err != nil {

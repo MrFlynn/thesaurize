@@ -31,7 +31,7 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate, d database
 		}
 
 		if len(content) > 0 {
-			outgoingMessage.Content = transformer.Transform(content, d)
+			outgoingMessage.Content = transformer.Transform(content, d, skipCommonWords)
 			_, err = s.ChannelMessageSendComplex(m.ChannelID, &outgoingMessage)
 		}
 	}

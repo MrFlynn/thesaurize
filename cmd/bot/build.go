@@ -2,7 +2,8 @@ package main
 
 // Build-time generated variables
 var (
-	version string
-	commit  string
-	date    string
+	version         string
+	commit          string
+	date            string
+	skipCommonWords string = "false"
 )

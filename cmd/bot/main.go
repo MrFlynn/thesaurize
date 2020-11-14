@@ -26,7 +26,14 @@ func main() {
 				Name:        "run",
 				Usage:       "Run the bot",
 				Description: "Configure and run the discord bot",
-				Action:      discord.Run,
+				Action: func(c *cli.Context) error {
+					var skip bool
+					if skipCommonWords == "true" {
+						skip = true
+					}
+
+					return discord.Run(c, skip)
+				},
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     "token",
