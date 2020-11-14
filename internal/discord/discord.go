@@ -6,16 +6,20 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"regexp"
 	"runtime"
-	"strings"
 
 	"github.com/MrFlynn/thesaurize/internal/database"
 	"github.com/bwmarrin/discordgo"
 	"github.com/urfave/cli/v2"
 )
 
-// Set if common words should be skipped.
-var skipCommonWords bool
+var (
+	// Set if common words should be skipped.
+	skipCommonWords bool
+	// Regex to strip command from front of message.
+	commandRemoveRegex = regexp.MustCompile(`^!thesaurize[\s]?`)
+)
 
 // bot type provides methods for communicating with discord.
 type bot struct {
@@ -102,7 +106,7 @@ func (b *bot) run(ctx *cli.Context) error {
 
 func trimCommand(s *discordgo.Session, m *discordgo.Message) string {
 	msg, _ := m.ContentWithMoreMentionsReplaced(s)
-	return strings.TrimPrefix(msg, "!thesaurize ")
+	return commandRemoveRegex.ReplaceAllString(msg, "")
 }
 
 // Run creates a bot and runs it. This provides the primary entrypoint into the bot. This function
