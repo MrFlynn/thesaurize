@@ -42,7 +42,7 @@ terminate:
 }
 
 func mentionParser(s *discordgo.Session, u *discordgo.User, channelID string) (string, error) {
-	messages, err := s.ChannelMessages(channelID, 20, "", "", "")
+	messages, err := s.ChannelMessages(channelID, 100, "", "", "")
 	if err != nil {
 		return "", fmt.Errorf(
 			"Could not accesses messages in channel:%s, err:%s",
