@@ -20,11 +20,12 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate, d database
 			// Display help dialog.
 			outgoingMessage.Embed = &helpEmbed
 		} else if len(m.Mentions) > 0 && !m.MentionEveryone {
-			user := m.Mentions[0]
-			content, err = mentionParser(s, user, m.ChannelID)
+			if m.Mentions[0].Username == content[1:] {
+				content, err = mentionParser(s, m.Mentions[0], m.ChannelID)
 
-			if err != nil {
-				goto terminate
+				if err != nil {
+					goto terminate
+				}
 			}
 		} else if len(content) == 0 {
 			goto terminate
@@ -50,7 +51,7 @@ func mentionParser(s *discordgo.Session, u *discordgo.User, channelID string) (s
 		)
 	}
 
-	for _, msg := range messages {
+	for _, msg := range messages[1:] {
 		if msg.Author.ID == u.ID {
 			return trimCommand(s, msg), nil
 		}
