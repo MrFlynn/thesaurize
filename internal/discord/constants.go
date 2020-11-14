@@ -19,7 +19,7 @@ var helpEmbed = discordgo.MessageEmbed{
 		},
 		{
 			Name:  "Commands",
-			Value: "Just enter your text into the command `!thesaurize <text>` to use this bot",
+			Value: "Just enter your text into the command `!thesaurize <text>` to use this bot.",
 		},
 	},
 }

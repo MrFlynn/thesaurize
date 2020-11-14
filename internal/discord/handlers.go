@@ -41,7 +41,7 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate, d database
 		outgoingMessage := discordgo.MessageSend{}
 		content := trimCommand(s, m.Message)
 
-		if content == "help" {
+		if content == "help" || len(content) == 0 {
 			// Display help dialog.
 			outgoingMessage.Embed = &helpEmbed
 		} else if len(m.Mentions) > 0 && !m.MentionEveryone {
@@ -52,12 +52,13 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate, d database
 					goto terminate
 				}
 			}
-		} else if len(content) == 0 {
-			goto terminate
 		}
 
 		if len(content) > 0 {
 			outgoingMessage.Content = transformer.Transform(content, d, skipCommonWords)
+		}
+
+		if len(content) > 0 || outgoingMessage.Embed != nil {
 			_, err = s.ChannelMessageSendComplex(m.ChannelID, &outgoingMessage)
 		}
 	}
