@@ -13,29 +13,35 @@ This is the recommended method for deploying this application. Clone this
 repository and run the commands found below. Make sure to do them in the
 following order.
 
-1. First, create a secret with your bot token. Make sure your secret is in 
+1. First, add the namespace.
+
+```bash
+$ kubectl apply -f namespace.yml
+```
+
+2. Create a secret with your bot token. Make sure your secret is in 
 your clipboard.
 ```bash
 $ cd deployments/
 $ pbpaste > discord-token.txt
-$ kubectl create secret discord-token --from-file=./discord-token.txt && \
+$ kubectl -n=thesaurize-bot create secret discord-token --from-file=./discord-token.txt && \
     rm -f discord-token.txt; pbcopy ""
 ```
 
-2. Next, apply the configuration stores.
+3. Next, add the volume.
 
 ```bash
-$ kubectl apply -f redis-config.yaml -f loader-scripts.yaml
+$ kubectl apply -f volume.yml
 ```
 
-3. Create the Redis service and load data into it.
+4. Create the Redis service and load data into it.
 
 ```bash
 $ kubectl apply -f redis.yaml
-$ kubectl apply -f loader-job.yaml
+$ kubectl apply -f loader-job.yaml -f loader-scripts.yaml
 ```
 
-4. Finally, run the bot.
+5. Finally, run the bot.
 
 ```bash
 $ kubectl apply -f thesaurize.yaml
