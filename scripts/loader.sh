@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -uo pipefail
 
 if [[ -z "$REDIS_URL" ]]; then
     >&2 echo "Variable REDIS_URL not set. Exiting..."
