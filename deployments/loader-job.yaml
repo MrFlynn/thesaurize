@@ -1,6 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
+  namespace: thesaurize-bot
   name: loader
 spec:
   backoffLimit: 3
@@ -17,7 +18,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: redis-config
-              key: redis_url
+              key: redis-url
         volumeMounts:
         - name: scripts
           mountPath: /scripts

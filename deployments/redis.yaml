@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
+  namespace: thesaurize-bot
   name: redis-statefulset
   labels:
     app: redis
@@ -31,17 +32,17 @@ spec:
             name: datastore
         resources:
           limits:
-            memory: "250Mi"
-            cpu: "500m"
+            memory: 100Mi
+            cpu: 100m
       volumes:
       - name: datastore
-        hostPath:
-          path: /data
-          type: Directory
+        persistentVolumeClaim:
+          claimName: thesaurize-bot-datastore
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: thesaurize-bot
   name: redis-service
 spec:
   selector:
@@ -50,3 +51,11 @@ spec:
   - protocol: TCP
     port: 6379
     targetPort: 6379
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: thesaurize-bot
+  name: redis-config
+data:
+  redis-url: redis-service

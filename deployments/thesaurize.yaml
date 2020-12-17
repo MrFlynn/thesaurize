@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: thesaurize-bot
   name: thesaurize-deployment
   labels:
     app: thesaurize
@@ -31,8 +32,8 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: redis-config
-              key: redis_url
+              key: redis-url
         resources:
           limits:
-            memory: "50Mi"
-            cpu: "500m"
+            memory: 50Mi
+            cpu: 100m

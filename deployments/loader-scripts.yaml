@@ -1,6 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: thesaurize-bot
   name: loader-scripts
 data:
   loader.sh: |
