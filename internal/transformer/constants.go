@@ -19,7 +19,7 @@ var ignoreWords = map[string]bool{
 	"are":   true,
 	"as":    true,
 	"with":  true,
-	"his:":  true,
+	"his":   true,
 	"they":  true,
 	"at":    true,
 	"be":    true,
@@ -74,6 +74,5 @@ var ignoreWords = map[string]bool{
 	"part":  true,
 	"i":     true,
 	"me":    true,
-	"his":   true,
 	"us":    true,
 }
