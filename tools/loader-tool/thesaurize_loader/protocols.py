@@ -51,7 +51,9 @@ class FileProtocol(Protocol):
     PROTOCOLS = set(["file://"])
 
     def __init__(self, location: str, codec: codecs.CodecInfo, logger: logging.Logger) -> None:
-        super(FileProtocol, self).__init__(location, codec, logger)
+        matcher = re.compile("^[A-z]+://")
+        super(FileProtocol, self).__init__(matcher.sub("", str(location)), codec, logger)
+
         self._file = None
 
     def _load_file(self) -> None:

@@ -101,14 +101,9 @@ class Loader:
             matcher = re.compile("^[A-z]+://")
 
             if (proto_string := matcher.search(self.args.file)) != None:
-                proto_handler = ProtocolFactory.create(proto_string.group(0))
-
-                if isinstance(proto_handler, FileProtocol):
-                    proto_handler = proto_handler(
-                        matcher.sub("", self.args.file), self._encoding, log
-                    )
-                else:
-                    proto_handler = proto_handler(self.args.file, self._encoding, log)
+                proto_handler = ProtocolFactory.create(proto_string.group(0))(
+                    self.args.file, self._encoding, log
+                )
             else:
                 raise RuntimeError("No protocol specified. You must specify one.")
 
