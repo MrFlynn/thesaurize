@@ -60,8 +60,7 @@ jobs:
         uses: crazy-max/ghaction-docker-buildx@v3.1.0
       - name: Build image
         run: |
-          docker buildx build \ 
-            --cache-to "type=local,dest=/tmp/buildx-cache" \
+          docker buildx build --cache-to "type=local,dest=/tmp/buildx-cache" \
             --output "type=image,push=false" \
             ${{ steps.setup.outputs.build_args }}
       - name: Login to hub.docker.com
@@ -71,8 +70,7 @@ jobs:
           password: ${{ secrets.DOCKER_REGISTRY_KEY }}
       - name: Push to hub.docker.com
         run: |
-          docker buildx build \
-            --cache-from "type=local,src=/tmp/buildx-cache" \
+          docker buildx build --cache-from "type=local,src=/tmp/buildx-cache" \
             --tag ${IMAGE_NAME}:${{ steps.setup.outputs.version }} --tag ${IMAGE_NAME}:latest \
             --push \
             ${{ steps.setup.outputs.build_args }}
@@ -84,9 +82,8 @@ jobs:
           password: ${{ secrets.CR_PAT }}
       - name: Push to ghcr.io
         run: |
-          docker buildx build \
-            --cache-from "type=local,src=/tmp/buildx-cache" \
-            --tag ghcr.io/mrflynn/${IMAGE_NAME}:${{ steps.setup.outputs.version }} \
-            --tag ghcr.io/mrflynn/${IMAGE_NAME}:latest \
+          docker buildx build --cache-from "type=local,src=/tmp/buildx-cache" \
+            --tag ghcr.io/${IMAGE_NAME}:${{ steps.setup.outputs.version }} \
+            --tag ghcr.io/${IMAGE_NAME}:latest \
             --push \
             ${{ steps.setup.outputs.build_args }}
