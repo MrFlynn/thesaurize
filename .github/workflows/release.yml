@@ -55,7 +55,7 @@ jobs:
           echo ::set-output name=build_args::--platform ${PLATFORMS} \
             ${BUILD_ARGS} \
             ${LABELS} \
-            ./Dockerfile
+            .
       - name: Setup Buildx
         uses: crazy-max/ghaction-docker-buildx@v3.1.0
       - name: Build image
