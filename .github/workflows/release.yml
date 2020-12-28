@@ -61,8 +61,7 @@ jobs:
       - name: Build image
         run: |
           docker buildx build \ 
-            --cache-from "type=local,src=/tmp/buildx-cache" \
-            --cache-to "type=local,src=/tmp/buildx-cache" \
+            --cache-to "type=local,dest=/tmp/buildx-cache" \
             --output "type=image,push=false" \
             ${{ steps.setup.outputs.build_args }}
       - name: Login to hub.docker.com
