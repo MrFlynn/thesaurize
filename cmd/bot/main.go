@@ -10,6 +10,14 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var infoTempl = `--- Thesaurize --- 
+Author:   %s
+Compiled: %s
+Commit:   %s
+
+Report issues to https://github.com/MrFlynn/thesaurize
+`
+
 func main() {
 	compiled, err := time.Parse(time.RFC3339, date)
 	if err != nil {
@@ -31,6 +39,8 @@ func main() {
 					if skipCommonWords == "true" {
 						skip = true
 					}
+
+					fmt.Printf("Thesaurize v%s (%s)\n\n", c.App.Version, c.App.Metadata["commit"])
 
 					return discord.Run(c, skip)
 				},
@@ -61,7 +71,7 @@ func main() {
 				Description: "Get build information about the bot and a link to report issues",
 				Action: func(c *cli.Context) error {
 					fmt.Printf(
-						"--- Thesaurize --- \nAuthor:   %s\nCompiled: %s\nCommit:   %s\n\nReport issues to https://github.com/MrFlynn/thesaurize\n",
+						infoTempl,
 						c.App.Authors[0].String(),
 						c.App.Compiled.String(),
 						c.App.Metadata["commit"],
