@@ -72,7 +72,7 @@ jobs:
         run: |
           docker buildx build --cache-from "type=local,src=/tmp/buildx-cache" \
             --tag ${IMAGE_NAME}:${{ steps.setup.outputs.version }} --tag ${IMAGE_NAME}:latest \
-            --push \
+            --output "type=image,push=true" \
             ${{ steps.setup.outputs.build_args }}
       - name: Login to ghcr.io
         uses: azure/docker-login@v1
@@ -85,5 +85,5 @@ jobs:
           docker buildx build --cache-from "type=local,src=/tmp/buildx-cache" \
             --tag ghcr.io/${IMAGE_NAME}:${{ steps.setup.outputs.version }} \
             --tag ghcr.io/${IMAGE_NAME}:latest \
-            --push \
+            --output "type=image,push=true" \
             ${{ steps.setup.outputs.build_args }}
