@@ -5,19 +5,30 @@ on:
     tags:
       - 'v*'
 
-env:
-  PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
-  IMAGE_NAME: mrflynn/thesaurize
-
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_CLI_EXPERIMENTAL: "enabled"
     steps:
       - uses: actions/checkout@v2
+      - uses: docker/setup-qemu-action@v1
+      - uses: docker/setup-buildx-action@v1
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.14
+      - name: Login to hub.docker.com
+        uses: azure/docker-login@v1
+        with:
+          username: mrflynn
+          password: ${{ secrets.DOCKER_REGISTRY_KEY }}
+      - name: Login to ghcr.io
+        uses: azure/docker-login@v1
+        with:
+          login-server: ghcr.io
+          username: mrflynn
+          password: ${{ secrets.CR_PAT }}
       - name: Run goreleaser
         uses: goreleaser/goreleaser-action@v2
         with:
@@ -25,65 +36,3 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  create-image:
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: /tmp/buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-      - name: Setup
-        id: setup
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          DATE=$(date -u --rfc-3339=date)
-
-          BUILD_ARGS="--build-arg VERSION=${VERSION} \
-            --build-arg COMMIT=${GITHUB_SHA} \
-            --build-arg DATE=${DATE}"
-          LABELS="--label=org.opencontainers.image.created=${DATE} \
-            --label=org.opencontainers.image.name=thesaurize \
-            --label=org.opencontainers.image.version=${VERSION} \
-            --label=org.opencontainers.image.licenses=AGPL-3.0 \
-            --label=org.opencontainers.image.revision=${GITHUB_SHA}"
-
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=build_args::--platform ${PLATFORMS} \
-            ${BUILD_ARGS} \
-            ${LABELS} \
-            .
-      - name: Setup Buildx
-        uses: crazy-max/ghaction-docker-buildx@v3.1.0
-      - name: Build image
-        run: |
-          docker buildx build --cache-to "type=local,dest=/tmp/buildx-cache" \
-            --output "type=image,push=false" \
-            ${{ steps.setup.outputs.build_args }}
-      - name: Login to hub.docker.com
-        uses: azure/docker-login@v1
-        with:
-          username: mrflynn
-          password: ${{ secrets.DOCKER_REGISTRY_KEY }}
-      - name: Push to hub.docker.com
-        run: |
-          docker buildx build --cache-from "type=local,src=/tmp/buildx-cache" \
-            --tag ${IMAGE_NAME}:${{ steps.setup.outputs.version }} --tag ${IMAGE_NAME}:latest \
-            --output "type=image,push=true" \
-            ${{ steps.setup.outputs.build_args }}
-      - name: Login to ghcr.io
-        uses: azure/docker-login@v1
-        with:
-          login-server: ghcr.io
-          username: mrflynn
-          password: ${{ secrets.CR_PAT }}
-      - name: Push to ghcr.io
-        run: |
-          docker buildx build --cache-from "type=local,src=/tmp/buildx-cache" \
-            --tag ghcr.io/${IMAGE_NAME}:${{ steps.setup.outputs.version }} \
-            --tag ghcr.io/${IMAGE_NAME}:latest \
-            --output "type=image,push=true" \
-            ${{ steps.setup.outputs.build_args }}

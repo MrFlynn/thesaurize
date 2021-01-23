@@ -1,22 +1,7 @@
 FROM golang:1.14 as build
 
-# Set version, commit, and date information at compile time.
-ARG VERSION
-ARG COMMIT
-ARG DATE
-
-# Standard environment variables.
-ENV CGO_ENABLED=0
-ENV GOOS=linux
-
 # Create a user to copy over to target image.
 RUN useradd -u 10000 bot
-
-WORKDIR /go/src
-COPY . .
-
-# Build the executable.
-RUN go build -ldflags="-s -w -X 'main.version=${VERSION}' -X 'main.commit=${COMMIT}' -X 'main.date=${DATE}' -X 'main.skipCommonWords=true'" -o bot ./cmd/bot
 
 # Target container.
 FROM scratch
@@ -25,7 +10,7 @@ FROM scratch
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /etc/passwd /etc/passwd
 
-COPY --from=build /go/src/bot /bin/bot
+COPY bot /bin/bot
 
 USER bot
 
