@@ -58,23 +58,46 @@ dockers:
   - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
   - "--label=org.opencontainers.image.version={{ .Version }}"
   - "--platform=linux/arm64/v8"
+- ids:
+  - default
+  image_templates:
+  - "mrflynn/thesaurize:latest-armv7"
+  - "mrflynn/thesaurize:{{ .Version }}-armv7"
+  - "ghcr.io/mrflynn/thesaurize:latest-armv7"
+  - "ghcr.io/mrflynn/thesaurize:{{ .Version }}-armv7"
+  use_buildx: true
+  dockerfile: Dockerfile
+  goarch: arm
+  goarm: 7
+  build_flag_templates:
+  - "--pull"
+  - "--label=org.opencontainers.image.created={{ .Date }}"
+  - "--label=org.opencontainers.image.title=thesaurize"
+  - "--label=org.opencontainers.image.licenses=MIT"
+  - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+  - "--label=org.opencontainers.image.version={{ .Version }}"
+  - "--platform=linux/arm/v7"
 docker_manifests:
 - name_template: "mrflynn/thesaurize:{{ .Version }}"
   image_templates:
   - "mrflynn/thesaurize:{{ .Version }}-amd64"
   - "mrflynn/thesaurize:{{ .Version }}-arm64v8"
+  - "mrflynn/thesaurize:{{ .Version }}-armv7"
 - name_template: "mrflynn/thesaurize:latest"
   image_templates:
   - "mrflynn/thesaurize:latest-amd64"
   - "mrflynn/thesaurize:latest-arm64v8"
+  - "mrflynn/thesaurize:latest-armv7"
 - name_template: "ghcr.io/mrflynn/thesaurize:{{ .Version }}"
   image_templates:
   - "ghcr.io/mrflynn/thesaurize:{{ .Version }}-amd64"
   - "ghcr.io/mrflynn/thesaurize:{{ .Version }}-arm64v8"
+  - "ghcr.io/mrflynn/thesaurize:{{ .Version }}-armv7"
 - name_template: "ghcr.io/mrflynn/thesaurize:latest"
   image_templates:
   - "ghcr.io/mrflynn/thesaurize:latest-amd64"
   - "ghcr.io/mrflynn/thesaurize:latest-arm64v8"
+  - "ghcr.io/mrflynn/thesaurize:latest-armv7"
 checksum:
   name_template: SHASUMS.txt
 snapshot:
