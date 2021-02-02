@@ -1,7 +1,7 @@
 FROM alpine:latest as base
 
 # Create a user to copy over to target image.
-RUN adduser -u 10000 -H -D porty
+RUN adduser -u 10000 -H -D bot
 
 # Target container.
 FROM scratch
