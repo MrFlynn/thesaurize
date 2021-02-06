@@ -6,6 +6,26 @@ on:
       - 'v*'
 
 jobs:
+  build-wheel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.3'
+          architecture: x64
+      - name: Install Poetry
+        run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+      - name: Build wheel
+        run: |
+          source $HOME/.poetry/env
+          cd ./tools/loader-tool
+
+          poetry build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: loader-tool-wheel
+          path: tools/loader-tool/dist/thesaurize_loader-[0-9].[0-9].[0-9]-py3-none-any.whl
   release:
     runs-on: ubuntu-latest
     env:
@@ -27,6 +47,10 @@ jobs:
           registry: ghcr.io
           username: mrflynn
           password: ${{ secrets.CR_PAT }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: loader-tool-wheel
+          path: artifacts
       - name: Run goreleaser
         uses: goreleaser/goreleaser-action@v2
         with:

@@ -18,4 +18,5 @@
 .DS_Store
 
 # Output directories
-/dist
+dist/
+artifacts/

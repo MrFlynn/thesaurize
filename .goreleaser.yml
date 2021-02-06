@@ -102,6 +102,9 @@ checksum:
   name_template: SHASUMS.txt
 snapshot:
   name_template: "{{ .Tag }}-{{ .ShortCommit }}-RC"
+release:
+  extra_files:
+  - glob: ./artifacts/*.whl
 changelog:
   sort: asc
   filters:
