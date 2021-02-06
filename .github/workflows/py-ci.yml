@@ -32,14 +32,3 @@ jobs:
 
           poetry run python -m pytest -vv tests/
           poetry run python -m black --check .
-      - name: Build wheel
-        run: |
-          source $HOME/.poetry/env
-          cd ./tools/loader-tool
-
-          poetry build
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: loader-tool-wheel
-          path: tools/loader-tool/dist/thesaurize_loader-[0-9].[0-9].[0-9]-py3-none-any.whl
