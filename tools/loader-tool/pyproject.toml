@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "thesaurize-loader"
-version = "0.2.3"
+version = "0.2.4"
 description = "Load OpenOffice thesaurus files into Redis"
 authors = ["Nick Pleatsikas <nick@pleatsikas.me>"]
 readme = "README.md"
@@ -17,6 +17,7 @@ python = "^3.8"
 aioredis = "^1.3.1"
 progress = "^1.5"
 requests = "^2.24.0"
+wordfilter = {git = "https://github.com/MrFlynn/wordfilter.git"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

@@ -273,8 +273,20 @@ optional = false
 python-versions = "*"
 version = "0.1.7"
 
+[[package]]
+category = "main"
+description = "A small module meant for use in text generators that lets you filter strings for bad words."
+name = "wordfilter"
+optional = false
+python-versions = ">=3"
+version = "0.2.7"
+
+[package.source]
+reference = "7ce72a5f5667de27c3e3c31992773f9223b80b55"
+type = "git"
+url = "https://github.com/MrFlynn/wordfilter.git"
 [metadata]
-content-hash = "9879a8f98a6d41a941fb70692a8ae016bc5e1a7ba8d8b66d5b8ed3d8a3e86d4e"
+content-hash = "17bf7a8089211ee3abc21d5935adf8c5c537129d61b9e123088d3abc940357dc"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -461,3 +473,4 @@ wcwidth = [
     {file = "wcwidth-0.1.7-py2.py3-none-any.whl", hash = "sha256:f4ebe71925af7b40a864553f761ed559b43544f8f71746c2d756c7fe788ade7c"},
     {file = "wcwidth-0.1.7.tar.gz", hash = "sha256:3df37372226d6e63e1b1e1eda15c594bca98a22d33a23832a90998faa96bc65e"},
 ]
+wordfilter = []

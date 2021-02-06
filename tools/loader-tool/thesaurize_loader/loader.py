@@ -10,12 +10,15 @@ from .protocols import Protocol, ProtocolFactory, FileProtocol, HTTPProtocol
 
 from copy import deepcopy
 from progress.bar import Bar
+from wordfilter import Wordfilter
 
 DEFAULT_ENCODING = codecs.lookup("ISO8859-1")
 
 BUFF_T = typing.TypeVar("BUFF_T", bound=typing.Dict[str, typing.Dict[str, typing.Any]])
 TX_BUFFER_MAX_SIZE = 10000
 TX_BUFFER_TEMPLATE = {"noun": {}, "verb": {}, "adj": {}, "adv": {}}
+
+wordfilter = Wordfilter()
 
 log = logging.getLogger("loader-tool")
 
@@ -67,7 +70,8 @@ class Loader:
 
             for lexograph, section in self._tx_buffer.items():
                 for word, synonyms in section.items():
-                    pipeline.sadd(f"{lexograph}:{word}", *synonyms)
+                    if len(synonyms) > 0:
+                        pipeline.sadd(f"{lexograph}:{word}", *synonyms)
 
             await pipeline.execute()
             self._tx_buffer = deepcopy(TX_BUFFER_TEMPLATE)
@@ -78,11 +82,20 @@ class Loader:
             self._progress.next(n=inc)
 
             word, num_sections = header_line.split("|")
+            if wordfilter.blacklisted(word):
+                total = 0
+                for _ in range(int(num_sections)):
+                    inc, _ = next(reader)  # NOP read lines of words to skip.
+                    total += inc
+
+                self._progress.next(n=total)
+                return
+
             for _ in range(int(num_sections)):
                 inc, synonym_line = next(reader)
                 self._progress.next(n=inc)
 
-                items = synonym_line.split("|")
+                items = list(filter(lambda w: not wordfilter.blacklisted(w), synonym_line.split("|")))
                 section = items[0][1:-1]  # Remove parentheses.
 
                 self.push_to_buffer(word, section, *items[1:])
