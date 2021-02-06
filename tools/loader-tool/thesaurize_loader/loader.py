@@ -95,7 +95,9 @@ class Loader:
                 inc, synonym_line = next(reader)
                 self._progress.next(n=inc)
 
-                items = list(filter(lambda w: not wordfilter.blacklisted(w), synonym_line.split("|")))
+                items = list(
+                    filter(lambda w: not wordfilter.blacklisted(w), synonym_line.split("|"))
+                )
                 section = items[0][1:-1]  # Remove parentheses.
 
                 self.push_to_buffer(word, section, *items[1:])
