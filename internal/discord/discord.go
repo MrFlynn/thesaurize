@@ -74,7 +74,7 @@ func (b *bot) run(ctx *cli.Context) error {
 
 	log.Print("Bot connected to discord")
 
-	_, err = b.serviceHandler.ApplicationCommandCreate("", "", command)
+	_, err = b.serviceHandler.ApplicationCommandCreate(b.serviceHandler.State.User.ID, "", command)
 	if err != nil {
 		log.Println("Could not register application commands. Exiting...")
 		return err
