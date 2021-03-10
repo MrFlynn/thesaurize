@@ -5,9 +5,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"reflect"
-	"regexp"
-	"runtime"
 
 	"github.com/MrFlynn/thesaurize/internal/database"
 	"github.com/bwmarrin/discordgo"
@@ -17,8 +14,6 @@ import (
 var (
 	// Set if common words should be skipped.
 	skipCommonWords bool
-	// Regex to strip command from front of message.
-	commandRemoveRegex = regexp.MustCompile(`^!thesaurize[\s]?`)
 )
 
 // bot type provides methods for communicating with discord.
@@ -60,20 +55,6 @@ func new(ctx *cli.Context) (bot, error) {
 	}, nil
 }
 
-func (b *bot) registerHandler(handler func(s *discordgo.Session, m *discordgo.MessageCreate, d database.Database) error) {
-	b.serviceHandler.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		if m.Author.ID == s.State.User.ID {
-			return
-		}
-
-		err := handler(s, m, b.database)
-		if err != nil {
-			name := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
-			log.Printf("Got error: %s from handler %s", err, name)
-		}
-	})
-}
-
 func (b *bot) run(ctx *cli.Context) error {
 	var err error
 
@@ -93,6 +74,12 @@ func (b *bot) run(ctx *cli.Context) error {
 
 	log.Print("Bot connected to discord")
 
+	_, err = b.serviceHandler.ApplicationCommandCreate("", "", command)
+	if err != nil {
+		log.Println("Could not register application commands. Exiting...")
+		return err
+	}
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, os.Kill)
 
@@ -104,11 +91,6 @@ func (b *bot) run(ctx *cli.Context) error {
 	return err
 }
 
-func trimCommand(s *discordgo.Session, m *discordgo.Message) string {
-	msg, _ := m.ContentWithMoreMentionsReplaced(s)
-	return commandRemoveRegex.ReplaceAllString(msg, "")
-}
-
 // Run creates a bot and runs it. This provides the primary entrypoint into the bot. This function
 // is called directly by the main function in the main package. The `skip` variable instructs the
 // bot to skip common words in translation.
@@ -116,13 +98,12 @@ func Run(ctx *cli.Context, skip bool) error {
 	skipCommonWords = skip
 
 	bot, err := new(ctx)
-
 	if err != nil {
 		log.Print("Could not initialize bot")
 		return err
 	}
 
-	bot.registerHandler(commandHandler)
+	bot.serviceHandler.AddHandler(bot.commandHandler)
 	bot.serviceHandler.AddHandler(func(s *discordgo.Session, e *discordgo.Ready) {
 		s.UpdateGameStatus(0, "Reading a Thesaurus")
 	})

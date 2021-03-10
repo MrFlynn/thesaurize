@@ -1,15 +1,14 @@
 package discord
 
 import (
+	"errors"
 	"fmt"
-	"strings"
 
-	"github.com/MrFlynn/thesaurize/internal/database"
 	"github.com/MrFlynn/thesaurize/internal/transformer"
 	"github.com/bwmarrin/discordgo"
 )
 
-func errorHandler(s *discordgo.Session, err error, channelID string) {
+func errorHandler(s *discordgo.Session, i *discordgo.InteractionCreate, err error) {
 	msg := "Sorry. Something went wrong with the bot. Please try again later."
 	if botErr, ok := err.(botError); ok {
 		if botErr.t == errorUser {
@@ -18,53 +17,69 @@ func errorHandler(s *discordgo.Session, err error, channelID string) {
 		}
 	}
 
-	s.ChannelMessageSendEmbed(channelID, &discordgo.MessageEmbed{
-		Title:       ":x: Thesaurize Error :x:",
-		Description: msg,
-		Type:        "rich",
-		Footer: &discordgo.MessageEmbedFooter{
-			Text: "Thesaurize Bot by MrFlynn",
-		},
-		Fields: []*discordgo.MessageEmbedField{
-			{
-				Name:  "Report a Bug",
-				Value: "Submit an issue [here](https://github.com/MrFlynn/thesaurize/issues/new).",
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionApplicationCommandResponseData{
+			Embeds: []*discordgo.MessageEmbed{
+				{
+					Title:       ":x: Thesaurize Error :x:",
+					Description: msg,
+					Type:        "rich",
+					Footer: &discordgo.MessageEmbedFooter{
+						Text: "Thesaurize Bot by MrFlynn",
+					},
+					Fields: []*discordgo.MessageEmbedField{
+						{
+							Name:  "Report a Bug",
+							Value: "Submit an issue [here](https://github.com/MrFlynn/thesaurize/issues/new).",
+						},
+					},
+				},
 			},
 		},
 	})
 }
 
-func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate, d database.Database) error {
-	var err error
+func (b *bot) commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	if i.Data.Name == "thesaurize" {
+		if len(i.Data.Options) < 1 {
+			errorHandler(s, i, botError{
+				why: errors.New("Please provide some text or a username to the bot"),
+				t:   errorUser,
+			})
 
-	if strings.HasPrefix(m.Content, "!thesaurize") {
-		outgoingMessage := discordgo.MessageSend{}
-		content := trimCommand(s, m.Message)
+			return
+		}
 
-		if content == "help" || len(content) == 0 {
-			// Display help dialog.
-			outgoingMessage.Embed = &helpEmbed
-		} else if len(m.Mentions) > 0 && !m.MentionEveryone {
-			if m.Mentions[0].Username == content[1:] {
-				content, err = mentionParser(s, m.Mentions[0], m.ChannelID)
+		switch i.Data.Options[0].Name {
+		case "words":
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionApplicationCommandResponseData{
+					Content: transformer.Transform(i.Data.Options[0].StringValue(), b.database, skipCommonWords),
+				},
+			})
+		case "member":
+			message, err := mentionParser(s, i.Data.Options[0].UserValue(s), i.ChannelID)
+			if err != nil {
+				errorHandler(s, i, err)
 
-				if err != nil {
-					goto terminate
-				}
+				return
 			}
-		}
 
-		if len(content) > 0 {
-			outgoingMessage.Content = transformer.Transform(content, d, skipCommonWords)
-		}
-
-		if len(content) > 0 || outgoingMessage.Embed != nil {
-			_, err = s.ChannelMessageSendComplex(m.ChannelID, &outgoingMessage)
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionApplicationCommandResponseData{
+					Content: transformer.Transform(message, b.database, skipCommonWords),
+				},
+			})
+		default:
+			errorHandler(s, i, botError{
+				why: errors.New("Unknown option. Please provide some text or a username to the bot"),
+				t:   errorUser,
+			})
 		}
 	}
-
-terminate:
-	return err
 }
 
 func mentionParser(s *discordgo.Session, u *discordgo.User, channelID string) (string, error) {
@@ -79,14 +94,14 @@ func mentionParser(s *discordgo.Session, u *discordgo.User, channelID string) (s
 
 	for _, msg := range messages[1:] {
 		if msg.Author.ID == u.ID {
-			return trimCommand(s, msg), nil
+			return msg.Content, nil
 		}
 	}
 
 	return "", botError{
 		why: fmt.Errorf(
 			"Sorry, but I couldn't find the last message from %s. Is it be more than 100 messages ago?",
-			u.Username,
+			u.Mention(),
 		),
 		t: errorUser,
 	}
