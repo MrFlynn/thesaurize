@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/MrFlynn/thesaurize/internal/transformer"
 	"github.com/bwmarrin/discordgo"
 )
+
+var commandFormat = regexp.MustCompile(`^</\w+:\d+>`)
 
 func errorHandler(s *discordgo.Session, i *discordgo.InteractionCreate, err error) {
 	msg := "Sorry. Something went wrong with the bot. Please try again later."
@@ -93,8 +96,8 @@ func mentionParser(s *discordgo.Session, u *discordgo.User, channelID string) (s
 		)
 	}
 
-	for _, msg := range messages[1:] {
-		if msg.Author.ID == u.ID {
+	for _, msg := range messages {
+		if msg.Author.ID == u.ID && !commandFormat.MatchString(msg.Content) {
 			return msg.Content, nil
 		}
 	}
