@@ -21,7 +21,7 @@ var (
 		},
 	}
 
-	helpEmbed = discordgo.MessageEmbed{
+	helpEmbed = &discordgo.MessageEmbed{
 		Title: ":book: Thesaurize Bot for Discord :book:",
 		URL:   "https://github.com/MrFlynn/thesaurize",
 		Description: `Makes sentences nonsensical using a thesaurus.
@@ -36,8 +36,12 @@ var (
 				Value: "Because it's amusing, that's why.",
 			},
 			{
-				Name:  "Commands",
-				Value: "Just enter your text into the command `!thesaurize <text>` to use this bot.",
+				Name:  "Basic Usage",
+				Value: "Just enter some text into the command `/thesaurize <text>` to get starrt.",
+			},
+			{
+				Name:  "Thesaurizing a Previous Message",
+				Value: "Use the command `/thesaurize @member` to thesaurize their last message.",
 			},
 		},
 	}

@@ -3,6 +3,7 @@ package discord
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/MrFlynn/thesaurize/internal/transformer"
 	"github.com/bwmarrin/discordgo"
@@ -105,4 +106,23 @@ func mentionParser(s *discordgo.Session, u *discordgo.User, channelID string) (s
 		),
 		t: errorUser,
 	}
+}
+
+func joinHandler(s *discordgo.Session, c *discordgo.GuildCreate) {
+	if c.Guild.Unavailable {
+		log.Printf("guild %s unavailable", c.Guild.Name)
+
+		return
+	}
+
+	for _, channel := range c.Guild.Channels {
+		if channel.Type == discordgo.ChannelTypeGuildText {
+			_, err := s.ChannelMessageSendEmbed(channel.ID, helpEmbed)
+			if err == nil {
+				return // If channel delivery was successful, exit.
+			}
+		}
+	}
+
+	log.Printf("Could not find default channel in %s to send help message", c.Guild.Name)
 }
