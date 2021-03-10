@@ -123,6 +123,9 @@ func Run(ctx *cli.Context, skip bool) error {
 	}
 
 	bot.registerHandler(commandHandler)
+	bot.serviceHandler.AddHandler(func(s *discordgo.Session, e *discordgo.Ready) {
+		s.UpdateGameStatus(0, "Reading a Thesaurus")
+	})
 
 	return bot.run(ctx)
 }
