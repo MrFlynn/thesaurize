@@ -37,11 +37,11 @@ var (
 			},
 			{
 				Name:  "Basic Usage",
-				Value: "Just enter some text into the command `/thesaurize <text>` to get starrt.",
+				Value: "Just enter some text into the command `/thesaurize words:<text>` to get start.",
 			},
 			{
 				Name:  "Thesaurizing a Previous Message",
-				Value: "Use the command `/thesaurize @member` to thesaurize their last message.",
+				Value: "Use the command `/thesaurize member:@member` to thesaurize their last message.",
 			},
 		},
 	}
