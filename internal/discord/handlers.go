@@ -115,10 +115,19 @@ func mentionParser(s *discordgo.Session, u *discordgo.User, channelID string) (s
 	}
 }
 
-func joinHandler(s *discordgo.Session, c *discordgo.GuildCreate) {
+func (b *bot) joinHandler(s *discordgo.Session, c *discordgo.GuildCreate) {
 	if c.Guild.Unavailable {
 		log.Printf("guild %s unavailable", c.Guild.Name)
 
+		return
+	}
+
+	joined, err := b.database.IsServerJoined(c.Guild.ID)
+	if err != nil {
+		log.Printf("Could not check if server was in joined set %s", err)
+	}
+
+	if joined {
 		return
 	}
 
@@ -126,6 +135,7 @@ func joinHandler(s *discordgo.Session, c *discordgo.GuildCreate) {
 		if channel.Type == discordgo.ChannelTypeGuildText {
 			_, err := s.ChannelMessageSendEmbed(channel.ID, helpEmbed)
 			if err == nil {
+				b.database.AddJoinedServer(c.Guild.ID)
 				return // If channel delivery was successful, exit.
 			}
 		}

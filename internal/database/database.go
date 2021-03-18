@@ -9,6 +9,8 @@ import (
 	"github.com/go-redis/redis/v7"
 )
 
+const joinedServerKey = "servers"
+
 // Database type acts as the control interface for the Redis datastore.
 type Database struct {
 	uri    string
@@ -42,7 +44,7 @@ func New(uri string) Database {
 
 // GetBestCandidateWord returns the best replacement synonym for supplied word.
 // The return order should be in the defined lexeme order in Lexeme.go.
-func (d Database) GetBestCandidateWord(word string) string {
+func (d *Database) GetBestCandidateWord(word string) string {
 	results := make([]*redis.StringCmd, 4)
 
 	_, err := d.client.TxPipelined(func(pipe redis.Pipeliner) error {
@@ -73,7 +75,7 @@ func (d Database) GetBestCandidateWord(word string) string {
 }
 
 // WaitForReady waits for `ready` status message in `status` pubsub channel.
-func (d Database) WaitForReady(timeout int) error {
+func (d *Database) WaitForReady(timeout int) error {
 	if timeout == 0 {
 		log.Println("Skipping database check...")
 		return nil
@@ -95,4 +97,21 @@ func (d Database) WaitForReady(timeout int) error {
 			return fmt.Errorf("Channel `status` timed out after %ds", timeout)
 		}
 	}
+}
+
+// AddJoinedServer adds a server to the `servers` set.
+func (d *Database) AddJoinedServer(id string) error {
+	result := d.client.SAdd(joinedServerKey, id)
+	return result.Err()
+}
+
+// IsServerJoined checks if a specific guild is in the `servers` set.
+func (d *Database) IsServerJoined(id string) (bool, error) {
+	result := d.client.SIsMember(joinedServerKey, id)
+
+	if result.Err() != nil {
+		return false, result.Err()
+	}
+
+	return true, nil
 }
