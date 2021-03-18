@@ -47,9 +47,13 @@ func errorHandler(s *discordgo.Session, i *discordgo.InteractionCreate, err erro
 func (b *bot) commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if i.Data.Name == "thesaurize" {
 		if len(i.Data.Options) < 1 {
-			errorHandler(s, i, botError{
-				why: errors.New("Please provide some text or a username to the bot"),
-				t:   errorUser,
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionApplicationCommandResponseData{
+					Embeds: []*discordgo.MessageEmbed{
+						helpEmbed,
+					},
+				},
 			})
 
 			return
