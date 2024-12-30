@@ -42,6 +42,12 @@ func New(uri string) Database {
 	}
 }
 
+// GetPipeline returns a TxPipeline from the underlying client. It is the
+// responsibility of the caller to execute the pipeline or close it.
+func (d *Database) GetPipeline() redis.Pipeliner {
+	return d.client.TxPipeline()
+}
+
 // GetBestCandidateWord returns the best replacement synonym for supplied word.
 // The return order should be in the defined lexeme order in Lexeme.go.
 func (d *Database) GetBestCandidateWord(word string) string {
@@ -74,6 +80,16 @@ func (d *Database) GetBestCandidateWord(word string) string {
 	return word
 }
 
+const (
+	statusChannelName = "status"
+	readyMessage      = "ready"
+)
+
+// SendReady sends the ready message on the status channel.
+func (d *Database) SendReady() error {
+	return d.client.Publish(statusChannelName, readyMessage).Err()
+}
+
 // WaitForReady waits for `ready` status message in `status` pubsub channel.
 func (d *Database) WaitForReady(timeout int) error {
 	if timeout == 0 {
@@ -81,20 +97,22 @@ func (d *Database) WaitForReady(timeout int) error {
 		return nil
 	}
 
-	pubsub := d.client.Subscribe("status")
+	pubsub := d.client.Subscribe(statusChannelName)
 	defer pubsub.Close()
 
-	log.Printf("Waiting for ready status on channel `status` for %ds", timeout)
+	log.Printf("Waiting for ready status on channel '%s' for %ds", statusChannelName, timeout)
 
 	ch := pubsub.Channel()
 	for {
 		select {
 		case msg := <-ch:
-			if msg.Payload == "ready" {
+			if msg.Payload == readyMessage {
 				return nil
+			} else {
+				return fmt.Errorf("got unexpected status message '%s' on ready channel", msg.Payload)
 			}
 		case <-time.After(time.Duration(timeout) * time.Second):
-			return fmt.Errorf("Channel `status` timed out after %ds", timeout)
+			return fmt.Errorf("Channel '%s timed out after %ds", statusChannelName, timeout)
 		}
 	}
 }

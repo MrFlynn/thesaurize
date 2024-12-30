@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/MrFlynn/thesaurize/internal/discord"
+	"github.com/MrFlynn/thesaurize/internal/loader"
 	"github.com/urfave/cli/v2"
 )
 
-var infoTempl = `--- Thesaurize --- 
+var infoTempl = `--- Thesaurize ---
 Author:   %s
 Compiled: %s
 Commit:   %s
@@ -62,6 +63,44 @@ func main() {
 						Aliases: []string{"w"},
 						Usage:   "How long to wait for the database in seconds. A value of 0 will skip this check",
 						Value:   30,
+					},
+				},
+			},
+			{
+				Name:        "load",
+				Usage:       "Load data into Redis backend",
+				Description: "Load data from an OpenOffice thesaurus file into Redis",
+				Action: func(ctx *cli.Context) error {
+					return loader.Load(ctx)
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "data",
+						Aliases:  []string{"d"},
+						Usage:    "OpenOffice thesaurus data file",
+						Required: true,
+					},
+					&cli.StringFlag{
+						Name:     "datastore",
+						Aliases:  []string{"s"},
+						Usage:    "URI of Redis datastore. Formatted like redis://<address>:<port>",
+						Required: true,
+					},
+					&cli.BoolFlag{
+						Name:    "skip-profane-words",
+						Aliases: []string{"-p"},
+						Value:   true,
+						Usage:   "Skip profane words when loading data into redis",
+					},
+					&cli.StringSliceFlag{
+						Name:  "profane-word-categories",
+						Usage: "Categories of profane words to skip (general, lgbtq, racial, religious, sexual, and/or shock)",
+						Value: cli.NewStringSlice("lgbtq", "racial", "religious"),
+					},
+					&cli.StringFlag{
+						Name:  "profane-word-index-url",
+						Usage: "Index of profane words",
+						Value: "https://raw.githubusercontent.com/dsojevic/profanity-list/refs/heads/main/en.json",
 					},
 				},
 			},
