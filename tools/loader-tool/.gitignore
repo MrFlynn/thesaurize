@@ -1,6 +1,0 @@
-loader_tool.egg-info/
-
-__pycache__/
-.pytest_cache/
-
-dist/

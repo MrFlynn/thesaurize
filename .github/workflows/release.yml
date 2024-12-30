@@ -3,30 +3,9 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
-  build-wheel:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8.16'
-          architecture: x64
-      - name: Install Poetry
-        run: |
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-      - name: Build wheel
-        run: |
-          source $HOME/.poetry/env
-          cd ./tools/loader-tool
-
-          poetry build
-      - uses: actions/upload-artifact@v2
-        with:
-          name: loader-tool-wheel
-          path: tools/loader-tool/dist/thesaurize_loader-[0-9].[0-9].[0-9]-py3-none-any.whl
   release:
     runs-on: ubuntu-latest
     env:
@@ -40,7 +19,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.16'
+          go-version: "1.16"
       - uses: docker/login-action@v1
         with:
           username: mrflynn
