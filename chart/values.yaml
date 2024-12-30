@@ -1,0 +1,15 @@
+# Configuration for discord bot deployment.
+thesaurize:
+  name: thesaurize
+  image: ghcr.io/mrflynn/thesaurize
+  apiToken:
+    name: discord
+    key: token
+
+# Configuration for backend datastore.
+redis:
+  name: redis
+  image: redis:alpine
+  datastore:
+    claimName: thesaurize-bot
+    

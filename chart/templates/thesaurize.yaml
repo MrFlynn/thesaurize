@@ -1,0 +1,42 @@
+{{- $redisDomain := print .Values.redis.name "." .Release.Namespace ".svc." .Values.clusterDomain }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace | quote }}
+  name: {{ .Values.thesaurize.name }}
+  labels:
+    app: {{ .Values.thesaurize.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.thesaurize.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.thesaurize.name }}
+    spec:
+      initContainers:
+      - name: load-datastore
+        image: {{ .Values.thesaurize.image }}:{{ .Chart.appVersion }}
+        args:
+          - load
+          - "--data=https://www.openoffice.org/lingucomponent/MyThes-1.zip"
+          - "--datastore=redis://{{ $redisDomain }}:6379"
+      containers:
+      - name: {{ .Values.thesaurize.name }}
+        image: {{ .Values.thesaurize.image }}:{{ .Chart.appVersion }}
+        args:
+          - run
+          - "--token=$(TOKEN)"
+          - "--datastore=redis://{{ $redisDomain }}:6379"
+          - "--timeout=0"
+        env:
+          - name: TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.thesaurize.apiToken.name }}
+                key: {{ .Values.thesaurize.apiToken.key }}
+        resources:
+          limits:
+            memory: 50Mi
+            cpu: 100m
