@@ -40,7 +40,7 @@ func Load(ctx *cli.Context) error {
 
 		rd = resp.Body
 	default:
-		err = fmt.Errorf("unknown protocol %d", parts[0])
+		err = fmt.Errorf("unknown protocol %s", parts[0])
 	}
 
 	if err != nil {
