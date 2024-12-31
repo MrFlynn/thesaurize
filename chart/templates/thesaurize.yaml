@@ -27,11 +27,9 @@ spec:
         image: {{ .Values.thesaurize.image }}:{{ .Chart.appVersion }}
         args:
           - run
-          - "--token=$(TOKEN)"
           - "--datastore=redis://{{ $redisDomain }}:6379"
-          - "--timeout=0"
         env:
-          - name: TOKEN
+          - name: THESAURIZE_DISCORD_TOKEN
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.thesaurize.apiToken.name }}

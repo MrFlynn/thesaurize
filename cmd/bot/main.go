@@ -50,6 +50,7 @@ func main() {
 						Name:     "token",
 						Aliases:  []string{"t"},
 						Usage:    "Discord API key",
+						EnvVars:  []string{"THESAURIZE_DISCORD_TOKEN"},
 						Required: true,
 					},
 					&cli.StringFlag{
