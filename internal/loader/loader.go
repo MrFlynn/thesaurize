@@ -83,11 +83,15 @@ func Load(ctx *cli.Context) error {
 		}
 	}
 
+	log.Println("Loading dataset into Redis backend")
+
 	if err := scanDataFile(dataFile, ch, filter); err != nil {
 		log.Fatalf("Unable to read data file: %s", err)
 	}
 
 	wg.Wait()
+
+	log.Println("Loading complete")
 	return nil
 }
 
