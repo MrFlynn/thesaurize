@@ -89,7 +89,7 @@ func main() {
 					},
 					&cli.BoolFlag{
 						Name:    "skip-profane-words",
-						Aliases: []string{"-p"},
+						Aliases: []string{"p"},
 						Value:   true,
 						Usage:   "Skip profane words when loading data into redis",
 					},
