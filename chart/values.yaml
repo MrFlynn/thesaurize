@@ -4,7 +4,7 @@ clusterDomain: cluster.local
 # Configuration for discord bot deployment.
 thesaurize:
   name: thesaurize
-  image: ghcr.io/mrflynn/thesaurize
+  image: ghcr.io/mrflynn/thesaurize:1.3.0
   apiToken:
     name: discord
     key: token
@@ -15,4 +15,3 @@ redis:
   image: redis:alpine
   datastore:
     claimName: thesaurize-bot
-    

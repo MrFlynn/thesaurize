@@ -17,14 +17,14 @@ spec:
     spec:
       initContainers:
       - name: load-datastore
-        image: {{ .Values.thesaurize.image }}:{{ .Chart.appVersion }}
+        image: {{ .Values.thesaurize.image }}
         args:
           - load
           - "--data=https://www.openoffice.org/lingucomponent/MyThes-1.zip"
           - "--datastore=redis://{{ $redisDomain }}:6379"
       containers:
       - name: {{ .Values.thesaurize.name }}
-        image: {{ .Values.thesaurize.image }}:{{ .Chart.appVersion }}
+        image: {{ .Values.thesaurize.image }}
         args:
           - run
           - "--datastore=redis://{{ $redisDomain }}:6379"
