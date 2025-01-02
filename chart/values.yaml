@@ -1,3 +1,6 @@
+# Cluster domain name
+clusterDomain: cluster.local
+
 # Configuration for discord bot deployment.
 thesaurize:
   name: thesaurize
