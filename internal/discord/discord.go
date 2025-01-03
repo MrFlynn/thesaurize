@@ -104,7 +104,6 @@ func Run(ctx *cli.Context, skip bool) error {
 	}
 
 	bot.serviceHandler.AddHandler(bot.commandHandler)
-	bot.serviceHandler.AddHandler(bot.joinHandler)
 	bot.serviceHandler.AddHandler(func(s *discordgo.Session, e *discordgo.Ready) {
 		s.UpdateGameStatus(0, "Reading a thesaurus")
 	})

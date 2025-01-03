@@ -116,20 +116,3 @@ func (d *Database) WaitForReady(timeout int) error {
 		}
 	}
 }
-
-// AddJoinedServer adds a server to the `servers` set.
-func (d *Database) AddJoinedServer(id string) error {
-	result := d.client.SAdd(joinedServerKey, id)
-	return result.Err()
-}
-
-// IsServerJoined checks if a specific guild is in the `servers` set.
-func (d *Database) IsServerJoined(id string) (bool, error) {
-	result := d.client.SIsMember(joinedServerKey, id)
-
-	if result.Err() != nil {
-		return false, result.Err()
-	}
-
-	return true, nil
-}

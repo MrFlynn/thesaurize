@@ -3,7 +3,6 @@ package discord
 import (
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 
 	"github.com/MrFlynn/thesaurize/internal/transformer"
@@ -113,33 +112,4 @@ func mentionParser(s *discordgo.Session, u *discordgo.User, channelID string) (s
 		),
 		t: errorUser,
 	}
-}
-
-func (b *bot) joinHandler(s *discordgo.Session, c *discordgo.GuildCreate) {
-	if c.Guild.Unavailable {
-		log.Printf("guild %s unavailable", c.Guild.Name)
-
-		return
-	}
-
-	joined, err := b.database.IsServerJoined(c.Guild.ID)
-	if err != nil {
-		log.Printf("Could not check if server was in joined set %s", err)
-	}
-
-	if joined {
-		return
-	}
-
-	for _, channel := range c.Guild.Channels {
-		if channel.Type == discordgo.ChannelTypeGuildText {
-			_, err := s.ChannelMessageSendEmbed(channel.ID, helpEmbed)
-			if err == nil {
-				b.database.AddJoinedServer(c.Guild.ID)
-				return // If channel delivery was successful, exit.
-			}
-		}
-	}
-
-	log.Printf("Could not find default channel in %s to send help message", c.Guild.Name)
 }
